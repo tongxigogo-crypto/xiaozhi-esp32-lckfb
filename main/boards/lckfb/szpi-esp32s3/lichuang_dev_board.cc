@@ -108,21 +108,8 @@ private:
                 EnterWifiConfigMode();
                 return;
             }
-            // In press-to-talk mode the click event is handled by press down/up
-            if (!press_to_talk_tool_ || !press_to_talk_tool_->IsPressToTalkEnabled()) {
-                app.ToggleChatState();
-            }
-        });
-
-        boot_button_.OnPressDown([this]() {
-            if (press_to_talk_tool_ && press_to_talk_tool_->IsPressToTalkEnabled()) {
-                Application::GetInstance().StartListening();
-            }
-        });
-        boot_button_.OnPressUp([this]() {
-            if (press_to_talk_tool_ && press_to_talk_tool_->IsPressToTalkEnabled()) {
-                Application::GetInstance().StopListening();
-            }
+            // 单击 BOOT 键：说话时闭嘴打断 / 聆听时关闭通道静音 / 静默时恢复开启聆听
+            app.ToggleChatState();
         });
 
 #if CONFIG_USE_DEVICE_AEC

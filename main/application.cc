@@ -358,6 +358,8 @@ void Application::HandleActivationDoneEvent() {
         Schedule([this]() {
             // Play the success sound to indicate the device is ready
             audio_service_.PlaySound(Lang::Sounds::OGG_SUCCESS);
+            // 自动开启连接并进入常驻聆听模式（去官方化无唤醒词后开机自启）
+            ToggleChatState();
         });
     }
 }
