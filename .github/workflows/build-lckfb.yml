@@ -1,0 +1,38 @@
+name: Build LCKFB Firmware
+
+# 只编译立创·实战派 ESP32-S3（lckfb/szpi-esp32s3，变体 lichuang-dev）。
+# 用途：云端编译出 merged-binary.bin，下载到 Mac 后用 esptool 本地烧录，
+# 省掉在 Windows 上装 ESP-IDF 工具链这一步。
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build lckfb/szpi-esp32s3 (lichuang-dev)
+    runs-on: ubuntu-latest
+    container:
+      image: espressif/idf:v6.1
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build firmware
+        shell: bash
+        run: |
+          source "$IDF_PATH/export.sh"
+          idf.py --version
+          python scripts/build.py lckfb/szpi-esp32s3 --name lichuang-dev
+
+      - name: Upload firmware
+        uses: actions/upload-artifact@v7
+        with:
+          name: xiaozhi-lckfb-lichuang-dev
+          path: |
+            build/merged-binary.bin
+            build/xiaozhi.bin
+          if-no-files-found: error
