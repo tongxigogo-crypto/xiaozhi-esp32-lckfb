@@ -1,3 +1,24 @@
+==============================================================================
+Xiaozhi-ESP32-LCKFB Custom Edition (小肥鱼立创定制版固件)
+Copyright (c) 2026 tongxigogo. All Rights Reserved.
+License: CC BY-NC-SA 4.0 (Creative Commons Attribution-NonCommercial-ShareAlike 4.0)
+
+【开源许可与商业化使用限制声明】
+1. 个人与非商业许可：
+   本项目修改、新增及适配代码（包括但不限于去官方化、自动聆听、立创·实战派驱动适配及小肥鱼人设通信逻辑）
+   允许个人自由用于学习、学术研究、家庭 DIY 与非营利性技术折腾。
+2. 严禁商业化使用：
+   未经原作者（tongxigogo）明确书面授权，严禁任何个人、机构或企业将本固件、衍生版本或编译二进制文件用于：
+   - 商业硬件量产预装与整机/套件销售；
+   - 付费技术支持、商业托管、付费群/付费课程打包捆绑盈利；
+   - 任何形式的闭源商用或转卖获利。
+3. 商业授权联络方式：
+   如需商用授权、批量硬件预装或技术合作，必须事先联系原作者取得书面授权：
+   唯一授权联络邮箱：tongxigogo@gmail.com
+==============================================================================
+
+[Upstream Base License Notice]:
+
 MIT License
 
 Copyright (c) 2025 Shenzhen Xinzhi Future Technology Co., Ltd.
