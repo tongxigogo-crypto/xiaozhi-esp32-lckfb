@@ -3,6 +3,7 @@
 // Standard C++ headers
 #include <algorithm>
 #include <cinttypes>
+#include <cstdio>
 #include <cstring>
 #include <memory>
 #include <tuple>
@@ -139,7 +140,68 @@ void EmoteDisplay::SetEmotion(const char* const emotion) {
     ESP_LOGI(TAG, "SetEmotion: %s", emotion);
     if (emote_handle_ && emotion && strlen(emotion) > 0) {
         emote_set_anim_emoji(emote_handle_, emotion);
+        RefreshBatteryOverlay();
     }
+}
+
+void EmoteDisplay::RefreshBatteryOverlay() {
+    if (emote_handle_ == nullptr) {
+        return;
+    }
+
+    gfx_obj_t* label = emote_get_obj_by_name(emote_handle_, "battery_label");
+    if (label == nullptr) {
+        return;
+    }
+
+    if (emote_lock(emote_handle_) != ESP_OK) {
+        return;
+    }
+
+    if (!battery_valid_) {
+        gfx_label_set_text(label, "");
+        gfx_obj_set_visible(label, false);
+        emote_unlock(emote_handle_);
+        return;
+    }
+
+    char text[8];
+    std::snprintf(text, sizeof(text), "%d%%", battery_level_);
+    gfx_label_set_text(label, text);
+    gfx_label_set_color(label, GFX_COLOR_HEX(0xB8D8E8));
+    gfx_label_set_opa(label, 160);
+    gfx_obj_set_visible(label, true);
+    emote_unlock(emote_handle_);
+}
+
+void EmoteDisplay::SetBatteryLevel(const int level, const bool charging) {
+    const bool valid = level >= 0 && level <= 100;
+
+    // A valid value supplied through this public hook is an external value.
+    // Keep it across periodic board polling when the board has no sampler.
+    battery_override_ = valid;
+    battery_valid_ = valid;
+    battery_level_ = valid ? level : -1;
+    battery_charging_ = valid && charging;
+
+    if (emote_handle_ == nullptr) {
+        return;
+    }
+
+    if (!valid) {
+        // Do not send an invalid BAT event: esp_emote_expression clamps a
+        // negative percentage to 0, which would display a false "0%".
+        RefreshBatteryOverlay();
+        return;
+    }
+
+    // Keep the expression manager's battery cache in sync for future idle
+    // events. The custom layout intentionally has no battery/status icons.
+    char event_msg[16];
+    std::snprintf(event_msg, sizeof(event_msg), "%d,%d", battery_charging_ ? 1 : 0,
+                  battery_level_);
+    emote_set_event_msg(emote_handle_, EMOTE_MGR_EVT_BAT, event_msg);
+    RefreshBatteryOverlay();
 }
 
 void EmoteDisplay::SetChatMessage(const char* const role, const char* const content) {
@@ -157,6 +219,7 @@ void EmoteDisplay::SetChatMessage(const char* const role, const char* const cont
             emote_set_event_msg(emote_handle_, EMOTE_MGR_EVT_SPEAK, content);
         }
     }
+    RefreshBatteryOverlay();
 }
 
 void EmoteDisplay::SetStatus(const char* const status) {
@@ -172,6 +235,7 @@ void EmoteDisplay::SetStatus(const char* const status) {
             emote_set_event_msg(emote_handle_, EMOTE_MGR_EVT_SET, NULL);
         }
     }
+    RefreshBatteryOverlay();
 }
 
 void EmoteDisplay::ShowNotification(const char* notification, int duration_ms) {
@@ -179,12 +243,31 @@ void EmoteDisplay::ShowNotification(const char* notification, int duration_ms) {
     if (emote_handle_ && notification && strlen(notification) > 0) {
         emote_set_event_msg(emote_handle_, EMOTE_MGR_EVT_SYS, notification);
     }
+    RefreshBatteryOverlay();
 }
 
 void EmoteDisplay::UpdateStatusBar(bool update_all) {
     ESP_LOGD(TAG, "UpdateStatusBar: %s", update_all ? "true" : "false");
     if (!emote_handle_) {
         return;
+    }
+
+    int level = -1;
+    bool charging = false;
+    bool discharging = false;
+    const bool board_battery_valid =
+        Board::GetInstance().GetBatteryLevel(level, charging, discharging) && level >= 0 &&
+        level <= 100;
+    if (board_battery_valid) {
+        SetBatteryLevel(level, charging);
+        // The value came from the board sampler, not the external hook.
+        battery_override_ = false;
+    } else if (!battery_override_) {
+        SetBatteryLevel(-1, false);
+    } else {
+        // Keep a valid value supplied by a future external battery event when
+        // this board has no ADC-backed GetBatteryLevel implementation.
+        RefreshBatteryOverlay();
     }
 }
 
@@ -235,6 +318,13 @@ bool EmoteDisplay::GetAssetData(const std::string& name, const uint8_t*& data, s
 void EmoteDisplay::LoadAssets() {
     if (emote_handle_ != nullptr) {
         emote_load_assets(emote_handle_);
+        // The expression manager initializes its BAT state to 0. Hide the
+        // overlay until a real or externally supplied value arrives.
+        battery_level_ = -1;
+        battery_charging_ = false;
+        battery_valid_ = false;
+        battery_override_ = false;
+        RefreshBatteryOverlay();
     }
 }
 

@@ -1,0 +1,32 @@
+[
+    {
+        "type": "anim",
+        "name": "eye_anim",
+        "align": "GFX_ALIGN_CENTER",
+        "x": 0,
+        "y": 0,
+        "anim": { "mirror": "false" }
+    },
+    {
+        "type": "anim",
+        "name": "emerg_dlg",
+        "align": "GFX_ALIGN_CENTER",
+        "x": 0,
+        "y": 0,
+        "anim": { "mirror": "false" }
+    },
+    {
+        "type": "label",
+        "name": "battery_label",
+        "align": "GFX_ALIGN_TOP_RIGHT",
+        "x": -6,
+        "y": 4,
+        "width": 46,
+        "height": 18,
+        "label": {
+            "color": 12179688,
+            "text_align": "GFX_TEXT_ALIGN_RIGHT",
+            "long_mode": { "type": "GFX_LABEL_LONG_CLIP" }
+        }
+    }
+]

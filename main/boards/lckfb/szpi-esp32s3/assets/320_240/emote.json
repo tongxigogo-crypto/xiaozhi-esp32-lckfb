@@ -1,0 +1,236 @@
+[
+  {
+    "emote": "happy",
+    "src": "happy.eaf",
+    "loop": true,
+    "fps": 12
+  },
+  {
+    "emote": "playful",
+    "src": "playful.eaf",
+    "loop": true,
+    "fps": 12
+  },
+  {
+    "emote": "smirk",
+    "src": "smirk.eaf",
+    "loop": true,
+    "fps": 12
+  },
+  {
+    "emote": "whisper",
+    "src": "whisper.eaf",
+    "loop": true,
+    "fps": 12
+  },
+  {
+    "emote": "heartache",
+    "src": "heartache.eaf",
+    "loop": true,
+    "fps": 12
+  },
+  {
+    "emote": "worried",
+    "src": "worried.eaf",
+    "loop": true,
+    "fps": 12
+  },
+  {
+    "emote": "roast",
+    "src": "roast.eaf",
+    "loop": true,
+    "fps": 12
+  },
+  {
+    "emote": "annoyed",
+    "src": "annoyed.eaf",
+    "loop": true,
+    "fps": 12
+  },
+  {
+    "emote": "pout",
+    "src": "pout.eaf",
+    "loop": true,
+    "fps": 12
+  },
+  {
+    "emote": "idle",
+    "src": "idle.eaf",
+    "loop": true,
+    "fps": 12
+  },
+  {
+    "emote": "listening",
+    "src": "listening.eaf",
+    "loop": true,
+    "fps": 12
+  },
+  {
+    "emote": "speaking",
+    "src": "speaking.eaf",
+    "loop": true,
+    "fps": 12
+  },
+  {
+    "emote": "jealous",
+    "src": "jealous.eaf",
+    "loop": true,
+    "fps": 12
+  },
+  {
+    "emote": "protect",
+    "src": "protect.eaf",
+    "loop": true,
+    "fps": 12
+  },
+  {
+    "emote": "emo",
+    "src": "emo.eaf",
+    "loop": true,
+    "fps": 12
+  },
+  {
+    "emote": "sleepy",
+    "src": "sleepy.eaf",
+    "loop": true,
+    "fps": 12
+  },
+  {
+    "emote": "sulk",
+    "src": "sulk.eaf",
+    "loop": true,
+    "fps": 12
+  },
+  {
+    "emote": "laugh",
+    "src": "laugh.eaf",
+    "loop": true,
+    "fps": 12
+  },
+  {
+    "emote": "curious",
+    "src": "curious.eaf",
+    "loop": true,
+    "fps": 12
+  },
+  {
+    "emote": "smug",
+    "src": "smug.eaf",
+    "loop": true,
+    "fps": 12
+  },
+  {
+    "emote": "sad",
+    "src": "sad.eaf",
+    "loop": true,
+    "fps": 12
+  },
+  {
+    "emote": "surprised",
+    "src": "surprised.eaf",
+    "loop": true,
+    "fps": 12
+  },
+  {
+    "emote": "thinking",
+    "src": "thinking.eaf",
+    "loop": true,
+    "fps": 12
+  },
+  {
+    "emote": "goodnight",
+    "src": "goodnight.eaf",
+    "loop": true,
+    "fps": 12
+  },
+  {
+    "emote": "neutral",
+    "src": "idle.eaf",
+    "loop": true,
+    "fps": 12
+  },
+  {
+    "emote": "robot_2",
+    "src": "idle.eaf",
+    "loop": true,
+    "fps": 12
+  },
+  {
+    "emote": "laughing",
+    "src": "laugh.eaf",
+    "loop": true,
+    "fps": 12
+  },
+  {
+    "emote": "funny",
+    "src": "playful.eaf",
+    "loop": true,
+    "fps": 12
+  },
+  {
+    "emote": "loving",
+    "src": "jealous.eaf",
+    "loop": true,
+    "fps": 12
+  },
+  {
+    "emote": "embarrassed",
+    "src": "pout.eaf",
+    "loop": true,
+    "fps": 12
+  },
+  {
+    "emote": "confident",
+    "src": "smug.eaf",
+    "loop": true,
+    "fps": 12
+  },
+  {
+    "emote": "delicious",
+    "src": "happy.eaf",
+    "loop": true,
+    "fps": 12
+  },
+  {
+    "emote": "crying",
+    "src": "sad.eaf",
+    "loop": true,
+    "fps": 12
+  },
+  {
+    "emote": "silly",
+    "src": "playful.eaf",
+    "loop": true,
+    "fps": 12
+  },
+  {
+    "emote": "angry",
+    "src": "annoyed.eaf",
+    "loop": true,
+    "fps": 12
+  },
+  {
+    "emote": "shocked",
+    "src": "surprised.eaf",
+    "loop": true,
+    "fps": 12
+  },
+  {
+    "emote": "winking",
+    "src": "playful.eaf",
+    "loop": true,
+    "fps": 12
+  },
+  {
+    "emote": "relaxed",
+    "src": "happy.eaf",
+    "loop": true,
+    "fps": 12
+  },
+  {
+    "emote": "confused",
+    "src": "curious.eaf",
+    "loop": true,
+    "fps": 12
+  }
+]

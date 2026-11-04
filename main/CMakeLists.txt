@@ -170,6 +170,12 @@ elseif(CONFIG_BOARD_TYPE_LICHUANG_DEV_S3)
     set(BUILTIN_TEXT_FONT font_noto_sans_basic_20_4)
     set(BUILTIN_ICON_FONT font_material_symbols_20_4)
     set(DEFAULT_EMOJI_COLLECTION noto-color-emoji_128)
+    set(EMOTE_RESOLUTION "320_240")
+    set(EMOTE_EXTERNAL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/boards/lckfb/szpi-esp32s3/assets")
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+        "${CMAKE_CURRENT_SOURCE_DIR}/boards/lckfb/szpi-esp32s3/assets/320_240/config.json"
+        "${CMAKE_CURRENT_SOURCE_DIR}/boards/lckfb/szpi-esp32s3/assets/320_240/layout.json"
+    )
 elseif(CONFIG_BOARD_TYPE_QUANDONG_S3_DEV)
     set(BOARD_DIR "quandong-s3-dev")
     set(BUILTIN_TEXT_FONT font_noto_sans_basic_20_4)

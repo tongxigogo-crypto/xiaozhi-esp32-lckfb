@@ -28,13 +28,19 @@
 #include "esp32_camera.h"
 #include "mcp_server.h"
 #include "press_to_talk_mcp_tool.h"
+#include "touch_gesture.h"
 
+#include <cstdlib>
 #include <esp_log.h>
 #include <esp_lcd_panel_vendor.h>
+#include <esp_lcd_touch.h>
+#include <esp_timer.h>
 #include <driver/i2c_master.h>
 #include <driver/spi_common.h>
 #include <esp_lcd_touch_ft5x06.h>
 #include <esp_lvgl_port.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 #include <lvgl.h>
 
 #define TAG "LichuangDevBoard"
@@ -87,6 +93,7 @@ private:
     Pca9557* pca9557_;
     Esp32Camera* camera_;
     PressToTalkMcpTool* press_to_talk_tool_ = nullptr;
+    esp_lcd_touch_handle_t touch_ = nullptr;
 
     void InitializeI2c() {
         // Initialize I2C peripheral
@@ -222,6 +229,10 @@ private:
             return;
         }
 
+#if CONFIG_USE_EMOTE_MESSAGE_STYLE
+        touch_ = tp;
+        StartTouchGestures();
+#else
         /* Add touch input (for selected screen) */
         const lvgl_port_touch_cfg_t touch_cfg = {
             .disp = lv_display_get_default(), 
@@ -233,7 +244,77 @@ private:
         } else {
             ESP_LOGE(TAG, "Touch display is not initialized");
         }
+#endif
     }
+
+#if CONFIG_USE_EMOTE_MESSAGE_STYLE
+    void StartTouchGestures() {
+        const BaseType_t result = xTaskCreate(
+            [](void* context) {
+                static_cast<LichuangDevBoard*>(context)->TouchGestureLoop();
+            },
+            "touch_gesture", 4096, this, 1, nullptr);
+        if (result != pdPASS) {
+            ESP_LOGE(TAG, "Failed to start touch gesture polling task");
+        }
+    }
+
+    void ApplyGesture(lckfb_touch::Gesture gesture) {
+        const char* emotion = nullptr;
+        switch (gesture) {
+            case lckfb_touch::Gesture::kHappy:
+                emotion = "happy";
+                break;
+            case lckfb_touch::Gesture::kSurprised:
+                emotion = "surprised";
+                break;
+            case lckfb_touch::Gesture::kAnnoyed:
+                emotion = "annoyed";
+                break;
+            case lckfb_touch::Gesture::kLaugh:
+                emotion = "laugh";
+                break;
+            case lckfb_touch::Gesture::kNone:
+                return;
+        }
+
+        // Keep display mutations on the application task.
+        Application::GetInstance().Schedule([this, emotion]() {
+            if (display_ != nullptr) {
+                display_->SetEmotion(emotion);
+            }
+        });
+    }
+
+    void TouchGestureLoop() {
+        lckfb_touch::Recognizer recognizer(
+            [this](lckfb_touch::Gesture gesture) { ApplyGesture(gesture); });
+        uint16_t x = 0;
+        uint16_t y = 0;
+        uint16_t strength = 0;
+        uint8_t points = 0;
+
+        for (;;) {
+            vTaskDelay(pdMS_TO_TICKS(40));
+            const int64_t now_ms = esp_timer_get_time() / 1000;
+            if (touch_ == nullptr) {
+                continue;
+            }
+
+            const bool read_ok = esp_lcd_touch_read_data(touch_) == ESP_OK;
+            bool down = false;
+            if (read_ok) {
+                points = 0;
+                // get_coordinates() returns bool; it is not an esp_err_t.
+                const bool coordinates_ok = esp_lcd_touch_get_coordinates(
+                    touch_, &x, &y, &strength, &points, 1);
+                down = coordinates_ok && points > 0;
+            }
+
+            recognizer.Update({read_ok, down, static_cast<int>(x), static_cast<int>(y), now_ms});
+        }
+    }
+#endif
 
     void InitializeCamera() {
         // Open camera power

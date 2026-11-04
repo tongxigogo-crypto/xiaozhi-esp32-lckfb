@@ -18,6 +18,8 @@ public:
     virtual ~EmoteDisplay();
 
     virtual void SetEmotion(const char* emotion) override;
+    // Update the optional battery percentage overlay. A negative level hides it.
+    void SetBatteryLevel(int level, bool charging);
     virtual void SetStatus(const char* status) override;
     virtual void SetChatMessage(const char* role, const char* content) override;
     virtual void SetTheme(Theme* theme) override;
@@ -39,10 +41,16 @@ public:
     emote_handle_t GetEmoteHandle() const { return emote_handle_; }
 
 private:
+    void RefreshBatteryOverlay();
+
     virtual bool Lock(int timeout_ms = 0) override;
     virtual void Unlock() override;
 
     emote_handle_t emote_handle_ = nullptr;
+    int battery_level_ = -1;
+    bool battery_charging_ = false;
+    bool battery_valid_ = false;
+    bool battery_override_ = false;
 };
 
 }  // namespace emote
