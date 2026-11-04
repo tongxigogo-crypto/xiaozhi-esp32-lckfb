@@ -173,8 +173,8 @@ elseif(CONFIG_BOARD_TYPE_LICHUANG_DEV_S3)
     set(EMOTE_RESOLUTION "320_240")
     set(EMOTE_EXTERNAL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/boards/lckfb/szpi-esp32s3/assets")
     set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
-        "${CMAKE_CURRENT_SOURCE_DIR}/boards/lckfb/szpi-esp32s3/assets/320_240/config.json"
         "${CMAKE_CURRENT_SOURCE_DIR}/boards/lckfb/szpi-esp32s3/assets/320_240/layout.json"
+        "${CMAKE_CURRENT_SOURCE_DIR}/boards/lckfb/szpi-esp32s3/assets/320_240/emote.json"
     )
 elseif(CONFIG_BOARD_TYPE_QUANDONG_S3_DEV)
     set(BOARD_DIR "quandong-s3-dev")
