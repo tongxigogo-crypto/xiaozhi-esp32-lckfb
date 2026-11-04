@@ -3,6 +3,7 @@
 // Standard C++ headers
 #include <algorithm>
 #include <cinttypes>
+#include <cstdio>
 #include <cstring>
 #include <memory>
 #include <tuple>
@@ -136,9 +137,45 @@ EmoteDisplay::~EmoteDisplay() {
 }
 
 void EmoteDisplay::SetEmotion(const char* const emotion) {
-    ESP_LOGI(TAG, "SetEmotion: %s", emotion);
+    TrySetEmotion(emotion);
+}
+
+bool EmoteDisplay::TrySetEmotion(const char* const emotion) {
+    ESP_LOGI(TAG, "SetEmotion: %s", emotion ? emotion : "");
     if (emote_handle_ && emotion && strlen(emotion) > 0) {
-        emote_set_anim_emoji(emote_handle_, emotion);
+        return emote_set_anim_emoji(emote_handle_, emotion) == ESP_OK;
+    }
+    return false;
+}
+
+void EmoteDisplay::SetBatteryLevel(int level, bool charging) {
+    if (emote_handle_ == nullptr) {
+        return;
+    }
+    if (level < 0) {
+        level = 0;
+    } else if (level > 100) {
+        level = 100;
+    }
+
+    // 事件只负责把数值记进引擎（evt_bat 不隐藏其它界面元素）
+    char msg[16];
+    snprintf(msg, sizeof(msg), "%d,%d", charging ? 1 : 0, level);
+    emote_set_event_msg(emote_handle_, EMOTE_MGR_EVT_BAT, msg);
+
+    gfx_obj_t* label = emote_get_obj_by_name(emote_handle_, EMT_DEF_ELEM_BAT_LEFT_LABEL);
+    if (label == nullptr) {
+        ESP_LOGW(TAG, "battery label missing in assets layout");
+        return;
+    }
+
+    // 图标由布局决定，这里只写文字，避免出现电池图标
+    char text[8];
+    snprintf(text, sizeof(text), "%d%%", level);
+    if (emote_lock(emote_handle_) == ESP_OK) {
+        gfx_label_set_text(label, text);
+        gfx_obj_set_visible(label, true);
+        emote_unlock(emote_handle_);
     }
 }
 
@@ -186,6 +223,28 @@ void EmoteDisplay::UpdateStatusBar(bool update_all) {
     if (!emote_handle_) {
         return;
     }
+
+    // 30 秒一次；变化时立即刷新
+    const int64_t now_ms = esp_timer_get_time() / 1000;
+    if (!update_all && last_battery_check_ms_ != 0 &&
+        now_ms - last_battery_check_ms_ < 30000) {
+        return;
+    }
+    last_battery_check_ms_ = now_ms;
+
+    int level = 0;
+    bool charging = false;
+    bool discharging = false;
+    if (!Board::GetInstance().GetBatteryLevel(level, charging, discharging)) {
+        // 本板没有电量采样电路：不显示百分比，也不编造数值
+        return;
+    }
+    if (!update_all && level == last_battery_level_ && charging == last_battery_charging_) {
+        return;
+    }
+    last_battery_level_ = level;
+    last_battery_charging_ = charging;
+    SetBatteryLevel(level, charging);
 }
 
 void EmoteDisplay::SetPowerSaveMode(bool on) {

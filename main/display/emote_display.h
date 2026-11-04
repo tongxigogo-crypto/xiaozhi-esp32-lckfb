@@ -18,6 +18,10 @@ public:
     virtual ~EmoteDisplay();
 
     virtual void SetEmotion(const char* emotion) override;
+    // 返回资源包是否认识这个名字；不认识时上层可以换备用名
+    bool TrySetEmotion(const char* emotion);
+    // 电量百分比：只写右上角文字，不画电池图标
+    void SetBatteryLevel(int level, bool charging);
     virtual void SetStatus(const char* status) override;
     virtual void SetChatMessage(const char* role, const char* content) override;
     virtual void SetTheme(Theme* theme) override;
@@ -43,6 +47,9 @@ private:
     virtual void Unlock() override;
 
     emote_handle_t emote_handle_ = nullptr;
+    int64_t last_battery_check_ms_ = 0;
+    int last_battery_level_ = -1;
+    bool last_battery_charging_ = false;
 };
 
 }  // namespace emote

@@ -26,7 +26,8 @@ jobs:
         run: |
           source "$IDF_PATH/export.sh"
           idf.py --version
-          python scripts/build.py lckfb/szpi-esp32s3 --name lichuang-dev --wake-word disabled
+          python scripts/build.py lckfb/szpi-esp32s3 --name lichuang-dev --wake-word disabled \
+            --build-options-json '{"display_style":"emote"}'
 
       - name: Upload firmware
         uses: actions/upload-artifact@v7

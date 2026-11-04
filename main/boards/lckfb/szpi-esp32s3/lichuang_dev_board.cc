@@ -31,10 +31,14 @@
 
 #include <esp_log.h>
 #include <esp_lcd_panel_vendor.h>
+#include <esp_lcd_touch.h>
+#include <esp_timer.h>
 #include <driver/i2c_master.h>
 #include <driver/spi_common.h>
 #include <esp_lcd_touch_ft5x06.h>
 #include <esp_lvgl_port.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 #include <lvgl.h>
 
 #define TAG "LichuangDevBoard"
@@ -87,6 +91,7 @@ private:
     Pca9557* pca9557_;
     Esp32Camera* camera_;
     PressToTalkMcpTool* press_to_talk_tool_ = nullptr;
+    esp_lcd_touch_handle_t touch_ = nullptr;
 
     void InitializeI2c() {
         // Initialize I2C peripheral
@@ -222,6 +227,12 @@ private:
             return;
         }
 
+        touch_ = tp;
+
+#if CONFIG_USE_EMOTE_MESSAGE_STYLE
+        // 表情模式不走 LVGL，屏上没有 lv_display，触摸交给独立任务轮询（中断脚是 NC）
+        StartTouchGestures();
+#else
         /* Add touch input (for selected screen) */
         const lvgl_port_touch_cfg_t touch_cfg = {
             .disp = lv_display_get_default(), 
@@ -233,7 +244,124 @@ private:
         } else {
             ESP_LOGE(TAG, "Touch display is not initialized");
         }
+#endif
     }
+
+#if CONFIG_USE_EMOTE_MESSAGE_STYLE
+    // ------------------------------------------------------------------
+    // 触摸手势：单击=开心 / 双击=惊讶 / 长按=嫌弃 / 左右滑=笑
+    // 中断引脚 NC，只能定时轮询；坐标只用来判方向，不参与表情定位
+    // ------------------------------------------------------------------
+    static constexpr int kTouchPollMs = 20;
+    static constexpr int kLongPressMs = 700;
+    static constexpr int kDoubleTapGapMs = 300;
+    static constexpr int kSwipeMinDx = 60;
+    static constexpr int kSwipeMaxDy = 50;
+
+    void StartTouchGestures() {
+        if (touch_ == nullptr) {
+            ESP_LOGW(TAG, "Touch unavailable, gestures disabled");
+            return;
+        }
+        BaseType_t ok = xTaskCreate(
+            [](void* arg) { static_cast<LichuangDevBoard*>(arg)->TouchGestureLoop(); },
+            "touch_gesture", 4 * 1024, this, 4, nullptr);
+        if (ok != pdPASS) {
+            ESP_LOGE(TAG, "Failed to start touch gesture task");
+        }
+    }
+
+    void FireEmotion(const char* name, const char* fallback) {
+        auto* emote_display = static_cast<emote::EmoteDisplay*>(display_);
+        if (emote_display == nullptr) {
+            return;
+        }
+        if (emote_display->TrySetEmotion(name)) {
+            return;
+        }
+        // 自建资源包还没做好时，退回内置资源里的近似表情
+        if (fallback != nullptr && emote_display->TrySetEmotion(fallback)) {
+            return;
+        }
+        ESP_LOGW(TAG, "Emote \"%s\" not found in assets", name);
+    }
+
+    void TouchGestureLoop() {
+        uint16_t x = 0;
+        uint16_t y = 0;
+        uint16_t strength = 0;
+        uint8_t points = 0;
+
+        bool pressed = false;
+        bool swipe_fired = false;
+        bool long_fired = false;
+        bool waiting_second_tap = false;
+        bool single_pending = false;
+        int64_t press_start_ms = 0;
+        int64_t release_ms = 0;
+        int64_t single_deadline_ms = 0;
+        uint16_t start_x = 0;
+        uint16_t start_y = 0;
+
+        for (;;) {
+            vTaskDelay(pdMS_TO_TICKS(kTouchPollMs));
+            const int64_t now_ms = esp_timer_get_time() / 1000;
+
+            bool down = false;
+            if (esp_lcd_touch_read_data(touch_) == ESP_OK) {
+                points = 0;
+                down = esp_lcd_touch_get_coordinates(touch_, &x, &y, &strength, &points, 1) ==
+                           ESP_OK &&
+                       points > 0;
+            }
+
+            if (down && !pressed) {
+                pressed = true;
+                press_start_ms = now_ms;
+                start_x = x;
+                start_y = y;
+                swipe_fired = false;
+                long_fired = false;
+                single_pending = false;
+                waiting_second_tap = (release_ms != 0 && now_ms - release_ms <= kDoubleTapGapMs);
+            } else if (down && pressed) {
+                if (!swipe_fired && !long_fired) {
+                    const int dx = static_cast<int>(x) - static_cast<int>(start_x);
+                    const int dy = static_cast<int>(y) - static_cast<int>(start_y);
+                    const bool horizontal = (dx >= kSwipeMinDx || dx <= -kSwipeMinDx) &&
+                                            (dy <= kSwipeMaxDy && dy >= -kSwipeMaxDy);
+                    if (horizontal) {
+                        swipe_fired = true;
+                        FireEmotion("laugh", "laughing");
+                    } else if (now_ms - press_start_ms >= kLongPressMs) {
+                        long_fired = true;
+                        FireEmotion("annoyed", "angry");
+                    }
+                }
+            } else if (!down && pressed) {
+                pressed = false;
+                release_ms = now_ms;
+                if (swipe_fired || long_fired) {
+                    waiting_second_tap = false;
+                    release_ms = 0;
+                } else if (waiting_second_tap) {
+                    waiting_second_tap = false;
+                    release_ms = 0;
+                    FireEmotion("surprised", nullptr);
+                } else {
+                    single_pending = true;
+                    single_deadline_ms = now_ms + kDoubleTapGapMs;
+                }
+            }
+
+            // 300ms 内没有第二下，才算单击
+            if (single_pending && !pressed && now_ms >= single_deadline_ms) {
+                single_pending = false;
+                FireEmotion("happy", nullptr);
+            }
+        }
+    }
+#endif
 
     void InitializeCamera() {
         // Open camera power
