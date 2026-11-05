@@ -1,0 +1,14 @@
+{
+  "timestamp": "2026-11-05T19:20:15+0800",
+  "before_restart": {
+    "status": 200,
+    "token_accepted": true
+  },
+  "after_restart": {
+    "status": 200,
+    "token_accepted": true
+  },
+  "key_unchanged": true,
+  "key_is_persisted": true,
+  "key_permissions": "0o600"
+}

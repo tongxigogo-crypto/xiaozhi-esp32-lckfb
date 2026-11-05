@@ -1,0 +1,89 @@
+{
+  "timestamp": "2026-11-05T19:18:23+0800",
+  "search": [
+    {
+      "query": "乐鑫 ESP32-S3 官方技术手册",
+      "seconds": 2.38,
+      "has_results": true,
+      "characters": 324
+    },
+    {
+      "query": "深圳今天的天气",
+      "seconds": 2.29,
+      "has_results": true,
+      "characters": 301
+    },
+    {
+      "query": "今天最新科技新闻",
+      "seconds": 2.62,
+      "has_results": true,
+      "characters": 369
+    }
+  ],
+  "http": [
+    {
+      "base": "http://127.0.0.1:8003",
+      "path": "/xiaozhi/ota/",
+      "status": 200,
+      "public_url_in_body": false
+    },
+    {
+      "base": "http://127.0.0.1:8003",
+      "path": "/mcp/vision/explain",
+      "status": 200,
+      "public_url_in_body": true
+    },
+    {
+      "base": "http://127.0.0.1:8003",
+      "path": "OTA_POST",
+      "status": 200,
+      "websocket_url": "ws://127.0.0.1:8000/xiaozhi/v1/",
+      "firmware_url_empty": true,
+      "server_time": true
+    },
+    {
+      "base": "http://47.117.142.184:8003",
+      "path": "/xiaozhi/ota/",
+      "status": 200,
+      "public_url_in_body": true
+    },
+    {
+      "base": "http://47.117.142.184:8003",
+      "path": "/mcp/vision/explain",
+      "status": 200,
+      "public_url_in_body": true
+    },
+    {
+      "base": "http://47.117.142.184:8003",
+      "path": "OTA_POST",
+      "status": 200,
+      "websocket_url": "ws://47.117.142.184:8000/xiaozhi/v1/",
+      "firmware_url_empty": true,
+      "server_time": true
+    },
+    {
+      "path": "VISION_POST",
+      "case": "missing",
+      "status": 401,
+      "success": false,
+      "response": "",
+      "message": "无效的认证token或token已过期"
+    },
+    {
+      "path": "VISION_POST",
+      "case": "wrong-device",
+      "status": 401,
+      "success": false,
+      "response": "",
+      "message": "无效的认证token或token已过期"
+    },
+    {
+      "path": "VISION_POST",
+      "case": "valid",
+      "status": 200,
+      "success": true,
+      "response": "红色",
+      "message": ""
+    }
+  ]
+}

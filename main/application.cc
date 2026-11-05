@@ -114,6 +114,7 @@ void Application::Initialize() {
     // Setup the display
     auto display = board.GetDisplay();
     display->SetupUI();
+    display->SetInteractionMode(listening_mode_ != kListeningModeManualStop);
     // Print board name/version info
     display->SetChatMessage("system", SystemInfo::GetUserAgent().c_str());
 
@@ -1110,8 +1111,21 @@ void Application::HandleStateChangedEvent() {
             audio_service_.EnableWakeWordDetection(audio_service_.IsAfeWakeWord());
             break;
         case kDeviceStateWifiConfiguring:
+            display->SetStatus(Lang::Strings::WIFI_CONFIG_MODE);
             audio_service_.EnableVoiceProcessing(false);
             audio_service_.EnableWakeWordDetection(false);
+            break;
+        case kDeviceStateStarting:
+            display->SetStatus(Lang::Strings::INITIALIZING);
+            break;
+        case kDeviceStateUpgrading:
+            display->SetStatus(Lang::Strings::UPGRADING);
+            break;
+        case kDeviceStateActivating:
+            display->SetStatus(Lang::Strings::ACTIVATION);
+            break;
+        case kDeviceStateFatalError:
+            display->SetStatus(Lang::Strings::ERROR);
             break;
         default:
             // Do nothing
@@ -1233,6 +1247,7 @@ void Application::AbortSpeaking(AbortReason reason) {
 
 void Application::SetListeningMode(ListeningMode mode) {
     listening_mode_ = mode;
+    Board::GetInstance().GetDisplay()->SetInteractionMode(mode != kListeningModeManualStop);
     SetDeviceState(kDeviceStateListening);
 }
 

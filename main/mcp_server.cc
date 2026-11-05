@@ -397,6 +397,13 @@ void McpServer::ParseMessage(const cJSON* json, ResponseSender response_sender) 
     }
 
     auto method_str = std::string(method->valuestring);
+    if (method_str == "notifications/vision/update") {
+        auto params = cJSON_GetObjectItem(json, "params");
+        if (cJSON_IsObject(params)) {
+            ParseCapabilities(params);
+        }
+        return;
+    }
     if (method_str.find("notifications") == 0) {
         return;
     }
@@ -424,7 +431,7 @@ void McpServer::ParseMessage(const cJSON* json, ResponseSender response_sender) 
         }
         auto app_desc = esp_app_get_description();
         std::string message =
-            "{\"protocolVersion\":\"2024-11-05\",\"capabilities\":{\"tools\":{}},\"serverInfo\":{"
+            "{\"protocolVersion\":\"2024-11-05\",\"capabilities\":{\"tools\":{},\"vision\":{\"tokenRefresh\":true}},\"serverInfo\":{"
             "\"name\":\"" BOARD_NAME "\",\"version\":\"";
         message += app_desc->version;
         message += "\"}}";

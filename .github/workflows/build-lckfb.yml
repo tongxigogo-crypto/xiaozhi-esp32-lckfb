@@ -28,8 +28,15 @@ jobs:
         run: |
           command -v g++ || (apt-get update && apt-get install -y g++)
           g++ --version
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
           python -m unittest discover -s scripts/tests -p 'test_touch_gesture_runner.py' -v
           python -m unittest discover -s scripts/tests -p 'test_settings_runner.py' -v
+          python -m unittest discover -s scripts/tests -p 'test_camera_tools.py' -v
+          python -m unittest discover -s scripts/tests -p 'test_vision_refresh.py' -v
+          python -m unittest discover -s scripts/tests -p 'test_interaction_overlay.py' -v
+          python -m unittest discover -s scripts/tests -p 'test_optimize_eaf.py' -v
+          python -m unittest discover -s scripts/tests -p 'test_emote_assets_dependencies.py' -v
+          python scripts/verify_eaf_assets.py
 
       - name: Build firmware
         shell: bash

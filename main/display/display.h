@@ -41,6 +41,7 @@ public:
     virtual ~Display();
 
     virtual void SetStatus(const char* status);
+    virtual void SetInteractionMode(bool automatic) { (void)automatic; }
     virtual void ShowNotification(const char* notification, int duration_ms = 3000);
     virtual void ShowNotification(const std::string& notification, int duration_ms = 3000);
     virtual void SetEmotion(const char* emotion);

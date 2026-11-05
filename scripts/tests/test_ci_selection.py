@@ -140,6 +140,8 @@ class CiSelectionTests(unittest.TestCase):
                 self.assertIn(f"CONFIG_XIAOZHI_NETWORK_ETHERNET={'y' if selected == 'ethernet' else 'n'}", fragment)
 
 
+@unittest.skipUnless((ROOT / ".github/workflows/build.yml").exists(),
+                     "Upstream multi-board workflow is intentionally absent in this single-board fork")
 class WorkflowDiffTests(unittest.TestCase):
     """Exercise the workflow's actual shell against small local Git histories."""
 

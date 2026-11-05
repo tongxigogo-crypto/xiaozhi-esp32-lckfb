@@ -28,7 +28,9 @@
 #include "assets/lang_config.h"
 #include "board.h"
 #include "expression_emote.h"
+#include "expression_emote/emote_assets.h"
 #include "gfx.h"
+#include "widget/gfx_font_lvgl.h"
 
 namespace emote {
 
@@ -130,17 +132,24 @@ EmoteDisplay::EmoteDisplay(const esp_lcd_panel_handle_t panel,
 }
 
 EmoteDisplay::~EmoteDisplay() {
+    std::lock_guard<std::recursive_mutex> guard(overlay_mutex_);
     if (emote_handle_) {
         emote_deinit(emote_handle_);
         emote_handle_ = nullptr;
     }
+    if (interaction_font_) {
+        gfx_font_lv_delete(interaction_font_);
+        interaction_font_ = nullptr;
+    }
 }
 
 void EmoteDisplay::SetEmotion(const char* const emotion) {
+    std::lock_guard<std::recursive_mutex> guard(overlay_mutex_);
     ESP_LOGI(TAG, "SetEmotion: %s", emotion);
     if (emote_handle_ && emotion && strlen(emotion) > 0) {
         emote_set_anim_emoji(emote_handle_, emotion);
         RefreshBatteryOverlay();
+        RefreshInteractionOverlay();
     }
 }
 
@@ -149,12 +158,12 @@ void EmoteDisplay::RefreshBatteryOverlay() {
         return;
     }
 
-    gfx_obj_t* label = emote_get_obj_by_name(emote_handle_, "battery_label");
-    if (label == nullptr) {
+    if (emote_lock(emote_handle_) != ESP_OK) {
         return;
     }
-
-    if (emote_lock(emote_handle_) != ESP_OK) {
+    gfx_obj_t* label = emote_get_obj_by_name(emote_handle_, "battery_label");
+    if (label == nullptr) {
+        emote_unlock(emote_handle_);
         return;
     }
 
@@ -174,7 +183,38 @@ void EmoteDisplay::RefreshBatteryOverlay() {
     emote_unlock(emote_handle_);
 }
 
+void EmoteDisplay::SetInteractionMode(bool automatic) {
+    std::lock_guard<std::recursive_mutex> guard(overlay_mutex_);
+    automatic_mode_ = automatic;
+    RefreshInteractionOverlay();
+}
+
+void EmoteDisplay::RefreshInteractionOverlay() {
+    if (!emote_handle_ || !assets_loaded_ || emote_lock(emote_handle_) != ESP_OK) {
+        return;
+    }
+    auto update_label = [this](const char* name, const char* text) {
+        auto label = emote_get_obj_by_name(emote_handle_, name);
+        if (!label) {
+            return;
+        }
+        // Never fall back to the basic font: it lacks the mode's Chinese glyphs.
+        const bool visible = interaction_font_ && text && text[0] != '\0';
+        if (interaction_font_) {
+            gfx_label_set_font(label, interaction_font_);
+        }
+        gfx_label_set_text(label, visible ? text : "");
+        gfx_label_set_color(label, GFX_COLOR_HEX(0xB8D8E8));
+        gfx_label_set_opa(label, 210);
+        gfx_obj_set_visible(label, visible);
+    };
+    update_label("mode_label", automatic_mode_ ? "自动" : "手动");
+    update_label("state_label", interaction_status_.c_str());
+    emote_unlock(emote_handle_);
+}
+
 void EmoteDisplay::SetBatteryLevel(const int level, const bool charging) {
+    std::lock_guard<std::recursive_mutex> guard(overlay_mutex_);
     const bool valid = level >= 0 && level <= 100;
 
     // A valid value supplied through this public hook is an external value.
@@ -192,6 +232,7 @@ void EmoteDisplay::SetBatteryLevel(const int level, const bool charging) {
         // Do not send an invalid BAT event: esp_emote_expression clamps a
         // negative percentage to 0, which would display a false "0%".
         RefreshBatteryOverlay();
+        RefreshInteractionOverlay();
         return;
     }
 
@@ -202,9 +243,11 @@ void EmoteDisplay::SetBatteryLevel(const int level, const bool charging) {
                   battery_level_);
     emote_set_event_msg(emote_handle_, EMOTE_MGR_EVT_BAT, event_msg);
     RefreshBatteryOverlay();
+    RefreshInteractionOverlay();
 }
 
 void EmoteDisplay::SetChatMessage(const char* const role, const char* const content) {
+    std::lock_guard<std::recursive_mutex> guard(overlay_mutex_);
     ESP_LOGI(TAG, "SetChatMessage: %s, %s", role, content);
     if (emote_handle_ && content && strlen(content) > 0) {
         if ((std::strcmp(role, "system") == 0) && std::strstr(content, "xiaozhi.me")) {
@@ -220,10 +263,13 @@ void EmoteDisplay::SetChatMessage(const char* const role, const char* const cont
         }
     }
     RefreshBatteryOverlay();
+    RefreshInteractionOverlay();
 }
 
 void EmoteDisplay::SetStatus(const char* const status) {
-    ESP_LOGI(TAG, "SetStatus: %s", status);
+    std::lock_guard<std::recursive_mutex> guard(overlay_mutex_);
+    interaction_status_ = status ? status : "";
+    ESP_LOGI(TAG, "SetStatus: %s", status ? status : "");
     if (emote_handle_ && status && strlen(status) > 0) {
         if (std::strcmp(status, Lang::Strings::LISTENING) == 0) {
             emote_set_event_msg(emote_handle_, EMOTE_MGR_EVT_LISTEN, NULL);
@@ -236,17 +282,21 @@ void EmoteDisplay::SetStatus(const char* const status) {
         }
     }
     RefreshBatteryOverlay();
+    RefreshInteractionOverlay();
 }
 
 void EmoteDisplay::ShowNotification(const char* notification, int duration_ms) {
+    std::lock_guard<std::recursive_mutex> guard(overlay_mutex_);
     ESP_LOGI(TAG, "ShowNotification: %s", notification);
     if (emote_handle_ && notification && strlen(notification) > 0) {
         emote_set_event_msg(emote_handle_, EMOTE_MGR_EVT_SYS, notification);
     }
     RefreshBatteryOverlay();
+    RefreshInteractionOverlay();
 }
 
 void EmoteDisplay::UpdateStatusBar(bool update_all) {
+    std::lock_guard<std::recursive_mutex> guard(overlay_mutex_);
     ESP_LOGD(TAG, "UpdateStatusBar: %s", update_all ? "true" : "false");
     if (!emote_handle_) {
         return;
@@ -268,6 +318,7 @@ void EmoteDisplay::UpdateStatusBar(bool update_all) {
         // Keep a valid value supplied by a future external battery event when
         // this board has no ADC-backed GetBatteryLevel implementation.
         RefreshBatteryOverlay();
+        RefreshInteractionOverlay();
     }
 }
 
@@ -285,6 +336,7 @@ void EmoteDisplay::SetPreviewImage(const void* image) {
 }
 
 bool EmoteDisplay::MountAssets(const char* partition_label) {
+    std::lock_guard<std::recursive_mutex> guard(overlay_mutex_);
     if (emote_handle_ == nullptr || partition_label == nullptr) {
         return false;
     }
@@ -303,12 +355,25 @@ bool EmoteDisplay::MountAssets(const char* partition_label) {
 }
 
 void EmoteDisplay::UnmountAssets() {
+    std::lock_guard<std::recursive_mutex> guard(overlay_mutex_);
     if (emote_handle_ != nullptr) {
+        // Labels and their font adapters must disappear before either the
+        // shared font descriptor or its mmap-backed glyph data are released.
+        if (assets_loaded_ && emote_unload_assets(emote_handle_) != ESP_OK) {
+            ESP_LOGE(TAG, "Could not unload expression assets");
+            return;
+        }
+        assets_loaded_ = false;
+        if (interaction_font_) {
+            gfx_font_lv_delete(interaction_font_);
+            interaction_font_ = nullptr;
+        }
         emote_unmount_assets(emote_handle_);
     }
 }
 
 bool EmoteDisplay::GetAssetData(const std::string& name, const uint8_t*& data, size_t& size) {
+    std::lock_guard<std::recursive_mutex> guard(overlay_mutex_);
     if (emote_handle_ == nullptr) {
         return false;
     }
@@ -316,16 +381,44 @@ bool EmoteDisplay::GetAssetData(const std::string& name, const uint8_t*& data, s
 }
 
 void EmoteDisplay::LoadAssets() {
-    if (emote_handle_ != nullptr) {
-        emote_load_assets(emote_handle_);
-        // The expression manager initializes its BAT state to 0. Hide the
-        // overlay until a real or externally supplied value arrives.
-        battery_level_ = -1;
-        battery_charging_ = false;
-        battery_valid_ = false;
-        battery_override_ = false;
-        RefreshBatteryOverlay();
+    std::lock_guard<std::recursive_mutex> guard(overlay_mutex_);
+    if (!emote_handle_) {
+        return;
     }
+    if (assets_loaded_ && emote_unload_assets(emote_handle_) != ESP_OK) {
+        ESP_LOGE(TAG, "Could not unload expression assets for reload");
+        return;
+    }
+    assets_loaded_ = false;
+    if (interaction_font_) {
+        gfx_font_lv_delete(interaction_font_);
+        interaction_font_ = nullptr;
+    }
+    // Mark as loaded even on failure so partially created objects are cleaned up.
+    assets_loaded_ = true;
+    if (emote_load_assets(emote_handle_) != ESP_OK) {
+        ESP_LOGE(TAG, "Could not load expression assets");
+        return;
+    }
+    const uint8_t* data = nullptr;
+    size_t size = 0;
+    if (emote_get_asset_data_by_name(emote_handle_, "font_puhui_common_20_4.bin", &data, &size) ==
+            ESP_OK &&
+        data && size > 0) {
+        // One descriptor shared by both labels, no copy of the font binary.
+        interaction_font_ = gfx_font_lv_load_from_binary(const_cast<uint8_t*>(data));
+    }
+    if (!interaction_font_) {
+        ESP_LOGW(TAG, "Interaction overlay font unavailable");
+    }
+    // A reload must not invent a battery reading. Mode and status are cached
+    // independently of expression assets and survive reloads.
+    battery_level_ = -1;
+    battery_charging_ = false;
+    battery_valid_ = false;
+    battery_override_ = false;
+    RefreshBatteryOverlay();
+    RefreshInteractionOverlay();
 }
 
 void EmoteDisplay::SetTheme(Theme* const theme) { ESP_LOGI(TAG, "SetTheme: %p", theme); }
@@ -338,6 +431,7 @@ bool EmoteDisplay::Lock(const int timeout_ms) {
 void EmoteDisplay::Unlock() {}
 
 bool EmoteDisplay::StopAnimDialog() {
+    std::lock_guard<std::recursive_mutex> guard(overlay_mutex_);
     ESP_LOGI(TAG, "StopAnimDialog");
     if (emote_handle_) {
         return emote_stop_anim_dialog(emote_handle_);
@@ -346,6 +440,7 @@ bool EmoteDisplay::StopAnimDialog() {
 }
 
 bool EmoteDisplay::InsertAnimDialog(const char* emoji_name, uint32_t duration_ms) {
+    std::lock_guard<std::recursive_mutex> guard(overlay_mutex_);
     ESP_LOGI(TAG, "InsertAnimDialog: %s, %" PRIu32, emoji_name, duration_ms);
     if (emote_handle_ && emoji_name) {
         return emote_insert_anim_dialog(emote_handle_, emoji_name, duration_ms);
@@ -354,6 +449,7 @@ bool EmoteDisplay::InsertAnimDialog(const char* emoji_name, uint32_t duration_ms
 }
 
 void EmoteDisplay::RefreshAll() {
+    std::lock_guard<std::recursive_mutex> guard(overlay_mutex_);
     if (emote_handle_) {
         emote_notify_all_refresh(emote_handle_);
         return;
