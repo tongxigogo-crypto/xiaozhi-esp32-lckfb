@@ -20,13 +20,16 @@ jobs:
       image: espressif/idf:v6.1
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
-      - name: Run touch gesture behavior test
+      - name: Run firmware behavior tests
         shell: bash
         run: |
           command -v g++ || (apt-get update && apt-get install -y g++)
           g++ --version
           python -m unittest discover -s scripts/tests -p 'test_touch_gesture_runner.py' -v
+          python -m unittest discover -s scripts/tests -p 'test_settings_runner.py' -v
 
       - name: Build firmware
         shell: bash
@@ -42,6 +45,26 @@ jobs:
           test -s build/expression_assets.bin
           test "$(stat -c%s build/expression_assets.bin)" -le 8388608
           sha256sum build/xiaozhi.bin build/expression_assets.bin > build/sha256sums.txt
+          cat > build/flash-args.txt <<EOF
+          app     : 0x20000  xiaozhi.bin
+          assets  : 0x800000 expression_assets.bin
+          boot    : 0x0      bootloader/bootloader.bin
+          table   : 0x8000   partition_table/partition-table.bin
+          ota_data: 0xd000   ota_data_initial.bin
+          version : 2.5.4
+          commit  : $(git rev-parse --short HEAD)
+          EOF
+
+      - name: Record 2.5.4 specification self-checks
+        shell: bash
+        run: |
+          git branch wip/2.5.4-baseline c19b11d
+          git rev-parse --short HEAD
+          grep -n "CONFIG_OTA_URL" sdkconfig
+          grep -n "PROJECT_VER" CMakeLists.txt
+          grep -n "dirty_ = true" main/settings.cc
+          git diff --stat wip/2.5.4-baseline..HEAD
+          grep -q '^CONFIG_OTA_URL="http://47.117.142.184:8003/xiaozhi/ota/"$' sdkconfig
 
       - name: Upload firmware
         uses: actions/upload-artifact@v7
@@ -51,4 +74,5 @@ jobs:
             build/xiaozhi.bin
             build/expression_assets.bin
             build/sha256sums.txt
+            build/flash-args.txt
           if-no-files-found: error

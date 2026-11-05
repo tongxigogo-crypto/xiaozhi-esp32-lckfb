@@ -53,12 +53,24 @@ Ota::Ota() {
 Ota::~Ota() {
 }
 
+static bool IsLocalUrl(const std::string& url) {
+    return url.find("192.168.") != std::string::npos ||
+           url.find("://127.") != std::string::npos ||
+           url.find("://localhost") != std::string::npos;
+}
+
 std::string Ota::GetCheckVersionUrl() {
-    Settings settings("wifi", false);
+    Settings settings("wifi", true);
     std::string url = settings.GetString("ota_url");
+    if (!url.empty() && IsLocalUrl(url)) {
+        ESP_LOGW(TAG, "Dropping stale local ota_url: %s", url.c_str());
+        settings.EraseKey("ota_url");
+        url.clear();
+    }
     if (url.empty()) {
         url = CONFIG_OTA_URL;
     }
+    ESP_LOGI(TAG, "OTA check url: %s", url.c_str());
     return url;
 }
 
