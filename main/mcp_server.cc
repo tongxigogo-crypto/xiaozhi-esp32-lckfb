@@ -89,6 +89,8 @@ void McpServer::AddCommonTools() {
                 });
     }
 
+#endif
+
     auto camera = board.GetCamera();
     if (camera) {
         AddTool("self.camera.take_photo",
@@ -114,7 +116,6 @@ void McpServer::AddCommonTools() {
                     return std::move(*result);
                 });
     }
-#endif
 
     // Restore the original tools list to the end of the tools list
     tools_.insert(tools_.end(), std::make_move_iterator(original_tools.begin()),
