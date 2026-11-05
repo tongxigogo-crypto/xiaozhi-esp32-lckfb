@@ -212,3 +212,11 @@ Gemini审查PASS的功能提交为3672528：T1–T5公网OTA、T7相机注册、
 - 用户已撤销旧凭据，独立接口复验：旧凭据HTTP401，新凭据HTTP200，无凭据HTTP401。source/live聊天与视觉配置均确认使用新凭据。
 - 新聊天请求与正式公网视觉识别此前已通过；正式服务运行。密钥值未输出、未入Git；固件、NVS和构建产物均未修改。
 - 状态由“等待用户撤销旧凭据”更新为“已验证完成”；证据outputs/2.5.5-security/evidence/deepseek-key-revocation-2026-11-06.json，仅含状态码。
+
+
+## 2026-11-06T01:31:05.788906+08:00 更正实机安装状态与显示范围
+
+- 用户反馈已烧2.5.5。查阅小马对话读回版本记录后，本轮只读核实：active ota0/版本2.5.5；esptool verify-flash确认app@0x20000与assets@0x800000均完整匹配96fada8，非只烧app。本轮未执行任何flash写入。此记录取代此前“未烧录”的旧状态。
+- 本轮启动日志：完整字体Foundfont；mode_label/state_label均Created custom object成功；进入listening，未见旧缺图标/缺字体错误。尚未肉眼确认实际屏幕像素效果。
+- 范围澄清：2.5.5仅显示事件适配、字体名表宽度及状态标签创建/生命周期修复，没有更换EAF画面。210ms没有实现；emote.json的idle/listening/neutral仍12fps（约83.3ms/帧），分别在fps行60/66/150。不存在可交付的210ms改动提交。
+- 证据outputs/2.5.5-security/evidence/device-paired-96fada8-verified.json与current-display-diagnosis-2026-11-06.json。新表情素材来源需先与Gemini制作记录对齐，避免多Agent并改。
