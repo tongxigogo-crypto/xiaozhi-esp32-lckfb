@@ -79,3 +79,9 @@
 - 旧“视觉只断固件/launchctl自动化必失败”结论已更正：修复搜索占位密钥、假电量、视觉测试绕过和token刷新；GUI launchctl可用，Desktop TCC需版本化运行副本。
 - 后续提交仅证据/状态，production code remains3672528；最终同HEAD产物以项目outputs/2.5.4-final/latest-release.json绑定。租约已交付，无其他Agent并发修改。
 - 不烧录、不合并main、不发布OTA。实机验收和P2网络加固保留。
+
+## 2026-11-05T20:49:57+0800 用户授权安全加固与资源错误修复
+
+- 用户要求Codex将安全保护全部开启，保留受保护的Mac控制；修复缺失状态资源的事件调用。新分支codex/2.5.5-security，从4a8964aaee1df6e4c1a77ec0c497a2dad200703a继续，未重写任何已有分支。独立审查仍为Gemini3.8Flash。
+- 本轮固件、服务端安全、TLS运维与私密设备凭据准备由Codex占用；小马已有STATUS提交保留。设备串口读写等待用户确认移交，当前不碰串口。密钥只存私密配置，不进入固件源码/提交/日志。
+- 设计与计划见docs/superpowers/specs/2026-11-05-security-clean-emote.md。原2.5.4产物与备份保留，禁止混用新旧manifest。
