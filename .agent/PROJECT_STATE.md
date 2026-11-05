@@ -128,3 +128,10 @@
 - 本轮启动日志：完整字体Foundfont；mode_label/state_label均Created custom object成功；进入listening，未见旧缺图标/缺字体错误。尚未肉眼确认实际屏幕像素效果。
 - 范围澄清：2.5.5仅显示事件适配、字体名表宽度及状态标签创建/生命周期修复，没有更换EAF画面。210ms没有实现；emote.json的idle/listening/neutral仍12fps（约83.3ms/帧），分别在fps行60/66/150。不存在可交付的210ms改动提交。
 - 证据outputs/2.5.5-security/evidence/device-paired-96fada8-verified.json与current-display-diagnosis-2026-11-06.json。新表情素材来源需先与Gemini制作记录对齐，避免多Agent并改。
+
+
+## 2026-11-06T07:53:31.797383+08:00 Codex接手2.5.6需求完善
+
+- 用户要求下版补齐情绪图形联动、待机/聆听/说话状态、人设、200–210ms；最新明确无真实电量继续隐藏。
+- Codex统一开发，Gemini3.8Flash只独立审查。固件8ccb432继续，不回退别人提交；服务端既有未提交dialogue补丁先保留整合。T1固件资源/显示，T2服务端情绪/工具，根任务独占版本、集成、云编译/运维和最终验收记录。
+- 规格docs/superpowers/specs/2026-11-06-2.5.6-expression-completion.md。当前只准备，不烧录/merge/发布，最终仍等用户确认。
