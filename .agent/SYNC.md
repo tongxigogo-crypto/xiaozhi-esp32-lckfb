@@ -50,6 +50,8 @@ git rev-parse --short fork/wip/2.5.4-baseline
 
 **3. 带标识。** 提交信息末尾加 `[agent:<名字>]`。
 
+**4. 编译权归小马。** 写完代码交付分支就停，不要自己触发 `build-lckfb.yml`、不要下载产物。编译在审查通过后统一发起。
+
 也可以直接跑守卫：
 
 ```bash
