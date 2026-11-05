@@ -250,6 +250,31 @@ void EmoteDisplay::SetInteractionMode(bool automatic) {
     RefreshInteractionOverlay();
 }
 
+bool EmoteDisplay::CreateInteractionLabels() {
+    // expression1.0.2's JSON loader only creates predefined widget names.
+    // Custom labels must use the public by-type API so they are registered
+    // for lookup and destroyed automatically by emote_unload_assets.
+    struct LabelLayout {
+        const char* name;
+        int y;
+        int width;
+    };
+    const LabelLayout layouts[] = {{"mode_label", 4, 60}, {"state_label", 28, 150}};
+    for (const auto& layout : layouts) {
+        auto label = emote_create_obj_by_type(emote_handle_, "label", layout.name);
+        if (!label || emote_lock(emote_handle_) != ESP_OK) {
+            return false;
+        }
+        gfx_obj_align(label, GFX_ALIGN_TOP_LEFT, 6, layout.y);
+        gfx_obj_set_size(label, layout.width, 24);
+        gfx_label_set_text_align(label, GFX_TEXT_ALIGN_LEFT);
+        gfx_label_set_long_mode(label, GFX_LABEL_LONG_CLIP);
+        gfx_obj_set_visible(label, false);
+        emote_unlock(emote_handle_);
+    }
+    return true;
+}
+
 void EmoteDisplay::RefreshInteractionOverlay() {
     if (!emote_handle_ || !assets_loaded_ || emote_lock(emote_handle_) != ESP_OK) {
         return;
@@ -460,6 +485,11 @@ void EmoteDisplay::LoadAssets() {
         // them now, while keeping rendering/event entry points disabled.
         emote_unload_assets(emote_handle_);
         ESP_LOGE(TAG, "Could not load expression assets");
+        return;
+    }
+    if (!CreateInteractionLabels()) {
+        emote_unload_assets(emote_handle_);
+        ESP_LOGE(TAG, "Could not create interaction labels");
         return;
     }
     assets_loaded_ = true;

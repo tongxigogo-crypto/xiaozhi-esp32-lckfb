@@ -49,6 +49,7 @@ private:
     void SetEventMessage(const char* event, const char* message);
     void RefreshBatteryOverlay();
     void RefreshInteractionOverlay();
+    bool CreateInteractionLabels();
 
     virtual bool Lock(int timeout_ms = 0) override;
     virtual void Unlock() override;

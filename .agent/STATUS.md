@@ -177,3 +177,14 @@ Gemini审查PASS的功能提交为3672528：T1–T5公网OTA、T7相机注册、
 | 基线修复 | `wip/2.5.4-baseline` 重指到 `b4ae94e`（曾回退到 02b40e7，已修） |
 | 已知缺陷 | 资源包缺 `icon_speaker` / `icon_mic` / `listen` 动画，状态图标不显示；不影响功能 |
 | 未验证 | 触摸手势、手机热点出门、拍照识别、公网 OTA 下载 |
+
+
+## 2026-11-05T23:08:56.417827+08:00 Codex 安全与人设实机进展（尚非最终烧录验收）
+
+- 正式运行服务已切至 serverfbb40a0；paired_device强鉴权已开启，公网HTTPS/WSS已验。匿名/错token/错client1008；未知OTA403；已配对OTA不下发私钥。Mac控制仍须设备鉴权+原有二次确认。
+- VPS8000/8003仅loopback；FRP强制TLS，Mac验证ISRG RootX1+公网IP SAN；NGINX/FRP/续期timer均active。续期hook会短暂重启FRP，待最终重连验收。
+- 用户授权的NVS配置已完成：仅0x9000/16KiB，3个目标键，MAC/分区/逐字节回读/非目标逻辑键均核验，其他WiFi/UUID保留。未写app/assets。
+- 实际2.5.4板经新WSS连入，进入listening、相机工具注册；新版本冷启动日期校验和屏幕/音频仍未实测。
+- 人设三层已统一：主prompt、TTS场景/疲惫兜底、主动搭话。对老大暖心为主，偶尔欢迎的斗嘴；保留黄蓉机灵护短。六次真实LLM文字抽测符合方向；实体语音尚未试听。Gemini3.8Flash人设/安全/工具/显示/时钟/NVS均分模块PASS（具体覆盖见outputs）。
+- 发现此前遗漏：资源表文件名字段16字节截断字体名；原生对象工厂不接受mode_label/state_label。正在做最后显示修正，需32字节新资源表+配套app，旧assets不得混烧。现有4e6dd01构建成功，但不能作为含该最后修正的最终包。
+- 一项DeepSeek API密钥误入本次工具输出，未进GitHub；已告知用户，模型后台撤销换新仍待账号入口配合。不在此记录任何值。

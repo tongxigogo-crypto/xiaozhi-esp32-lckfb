@@ -28,33 +28,5 @@
             "text_align": "GFX_TEXT_ALIGN_RIGHT",
             "long_mode": { "type": "GFX_LABEL_LONG_CLIP" }
         }
-    },
-    {
-        "type": "label",
-        "name": "mode_label",
-        "align": "GFX_ALIGN_TOP_LEFT",
-        "x": 6,
-        "y": 4,
-        "width": 60,
-        "height": 24,
-        "label": {
-            "color": 12179688,
-            "text_align": "GFX_TEXT_ALIGN_LEFT",
-            "long_mode": { "type": "GFX_LABEL_LONG_CLIP" }
-        }
-    },
-    {
-        "type": "label",
-        "name": "state_label",
-        "align": "GFX_ALIGN_TOP_LEFT",
-        "x": 6,
-        "y": 28,
-        "width": 150,
-        "height": 24,
-        "label": {
-            "color": 12179688,
-            "text_align": "GFX_TEXT_ALIGN_LEFT",
-            "long_mode": { "type": "GFX_LABEL_LONG_CLIP" }
-        }
     }
 ]

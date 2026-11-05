@@ -27,7 +27,7 @@ class InteractionOverlayTests(unittest.TestCase):
             "void EmoteDisplay::RefreshInteractionOverlay", "void EmoteDisplay::SetInteractionMode",
             "void EmoteDisplay::SetStatus", "void EmoteDisplay::LoadAssets",
             "void EmoteDisplay::UnmountAssets", "void EmoteDisplay::SetEmotion",
-            "bool EmoteDisplay::InsertAnimDialog", "void EmoteDisplay::ShowNotification",
+            "bool EmoteDisplay::CreateInteractionLabels", "bool EmoteDisplay::InsertAnimDialog", "void EmoteDisplay::ShowNotification",
         ]
         bodies = "\n".join(method(source, name) for name in methods)
         header = (ROOT / "main/display/emote_display.h").read_text()
@@ -52,10 +52,10 @@ template<typename... Args>void checked_log(const char*,const char*,Args... args)
 #define GFX_COLOR_HEX(x) (x)
 using emote_handle_t = void*;
 struct lv_font_t {};
-struct gfx_obj_t { std::string text; bool visible=false; void* font=nullptr; };
+struct gfx_obj_t { std::string text; bool visible=false; void* font=nullptr; int x=0,y=0,w=0,h=0; };
 gfx_obj_t mode, state, battery;
-bool loaded=false, locked=false, mounted=true, font_missing=false, load_failure=false;
-int font_live=0, font_freed=0;
+bool loaded=false, locked=false, mounted=true, font_missing=false, load_failure=false, labels_created=false;
+int font_live=0, font_freed=0; bool create_failure=false;
 std::vector<std::string> events;
 namespace Lang { namespace Strings {
 const char* LISTENING="聆听"; const char* STANDBY="待机";
@@ -68,11 +68,22 @@ void emote_unlock(void*) {assert(locked);locked=false;}
 gfx_obj_t* emote_get_obj_by_name(void*, const char* name) {
  assert(locked);
  if(!loaded)return nullptr;
- if(!strcmp(name,"mode_label"))return &mode;
- if(!strcmp(name,"state_label"))return &state;
+ if(!strcmp(name,"mode_label"))return labels_created ? &mode : nullptr;
+ if(!strcmp(name,"state_label"))return labels_created ? &state : nullptr;
  if(!strcmp(name,"battery_label"))return &battery;
  return nullptr;
 }
+enum {GFX_ALIGN_TOP_LEFT,GFX_TEXT_ALIGN_LEFT,GFX_LABEL_LONG_CLIP};
+gfx_obj_t* emote_create_obj_by_type(void*,const char* type,const char* name){
+ assert(loaded && !locked && !strcmp(type,"label"));
+ if(create_failure && !strcmp(name,"state_label"))return nullptr;
+ labels_created=true;
+ return !strcmp(name,"mode_label") ? &mode : &state;
+}
+void gfx_obj_align(gfx_obj_t* o,int,int x,int y){assert(locked);o->x=x;o->y=y;}
+void gfx_obj_set_size(gfx_obj_t* o,int w,int h){assert(locked);o->w=w;o->h=h;}
+void gfx_label_set_text_align(gfx_obj_t*,int){assert(locked);}
+void gfx_label_set_long_mode(gfx_obj_t*,int){assert(locked);}
 void gfx_label_set_text(gfx_obj_t* o,const char* s){assert(locked);o->text=s;}
 void gfx_label_set_color(gfx_obj_t*,int){assert(locked);}
 void gfx_label_set_opa(gfx_obj_t*,int){assert(locked);}
@@ -91,8 +102,8 @@ void gfx_font_lv_delete(lv_font_t* f){
  assert(!loaded);assert(font_live==1);--font_live;++font_freed;delete f;
  events.push_back("free");
 }
-int emote_load_assets(void*){assert(!loaded);loaded=true;mode={};state={};battery={};return load_failure ? -1 : 0;}
-int emote_unload_assets(void*){loaded=false;events.push_back("unload");return 0;}
+int emote_load_assets(void*){assert(!loaded);loaded=true;labels_created=false;mode={};state={};battery={};return load_failure ? -1 : 0;}
+int emote_unload_assets(void*){loaded=false;labels_created=false;events.push_back("unload");return 0;}
 int emote_unmount_assets(void*){assert(!loaded);assert(font_live==0);mounted=false;events.push_back("unmount");return 0;}
 void emote_deinit(void*){emote_unload_assets(nullptr);mounted=false;}
 namespace emote {
@@ -108,6 +119,7 @@ public:
  void LoadAssets();
  void UnmountAssets();
 private:
+ bool CreateInteractionLabels();
  void SetEventMessage(const char*, const char*);
  void RefreshBatteryOverlay();
  void RefreshInteractionOverlay();
@@ -119,6 +131,8 @@ int main(){
  d.SetInteractionMode(false);d.SetStatus(Lang::Strings::LISTENING);
  assert(!loaded);d.LoadAssets();
  assert(mode.visible && mode.text=="手动");
+ assert(mode.x==6 && mode.y==4 && mode.w==60 && mode.h==24);
+ assert(state.x==6 && state.y==28 && state.w==150 && state.h==24);
  assert(state.visible && state.text=="聆听");
  assert(mode.font && state.font==mode.font && font_live==1);
  assert(!battery.visible && battery.text.empty());
@@ -142,6 +156,9 @@ int main(){
  d.SetEmotion(nullptr);d.ShowNotification(nullptr);assert(!d.InsertAnimDialog(nullptr,10));
  load_failure=false;d.LoadAssets();assert(loaded && font_live==1);}
  assert(!loaded && font_live==0);
+ mounted=true;create_failure=true;
+ {emote::EmoteDisplay d;d.LoadAssets();assert(!loaded && font_live==0);
+ create_failure=false;d.LoadAssets();assert(loaded && font_live==1);}
  mounted=true;font_missing=true;
  {emote::EmoteDisplay d;d.SetStatus("聆听");d.LoadAssets();
  assert(!mode.visible && !state.visible); // no missing Chinese glyphs or fake status
@@ -160,10 +177,9 @@ int main(){
     def test_layout_and_application_use_real_mode(self):
         layout = json.loads((ROOT / "main/boards/lckfb/szpi-esp32s3/assets/320_240/layout.json").read_text())
         labels = {item["name"]: item for item in layout}
-        for name in ["mode_label", "state_label"]:
-            self.assertEqual(labels[name]["align"], "GFX_ALIGN_TOP_LEFT")
-            self.assertLessEqual(labels[name]["x"]+labels[name]["width"],160)
-        self.assertLessEqual(labels["mode_label"]["y"]+labels["mode_label"]["height"],labels["state_label"]["y"])
+        self.assertNotIn("mode_label",labels)
+        self.assertNotIn("state_label",labels)
+        display_source=(ROOT/"main/display/emote_display.cc").read_text()
         source = (ROOT / "main/application.cc").read_text()
         body = method(source, "void Application::SetListeningMode")
         self.assertIn("SetInteractionMode(mode != kListeningModeManualStop)",body)

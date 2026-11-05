@@ -38,6 +38,7 @@ jobs:
           python -m unittest discover -s scripts/tests -p 'test_vision_refresh.py' -v
           python -m unittest discover -s scripts/tests -p 'test_interaction_overlay.py' -v
           python -m unittest discover -s scripts/tests -p 'test_clean_emote_events.py' -v
+          python -m unittest discover -s scripts/tests -p 'test_emote_pack.py' -v
           python -m unittest discover -s scripts/tests -p 'test_provision_device_nvs.py' -v
           python -m unittest discover -s scripts/tests -p 'test_tls_clock.py' -v
           python -m unittest discover -s scripts/tests -p 'test_optimize_eaf.py' -v
@@ -52,6 +53,7 @@ jobs:
           python scripts/build.py lckfb/szpi-esp32s3 --name lichuang-dev --wake-word disabled
           grep -n "CONFIG_OTA_URL" sdkconfig
           grep -n "CONFIG_MBEDTLS_HAVE_TIME_DATE" sdkconfig
+          grep -n "CONFIG_MMAP_FILE_NAME_LENGTH" sdkconfig
 
       - name: Verify build outputs
         shell: bash
@@ -59,6 +61,7 @@ jobs:
           test -s build/xiaozhi.bin
           test -s build/expression_assets.bin
           test "$(stat -c%s build/expression_assets.bin)" -le 8388608
+          python scripts/verify_emote_pack.py build/expression_assets.bin
           sha256sum build/xiaozhi.bin build/expression_assets.bin > build/sha256sums.txt
           VER=$(grep -oE 'PROJECT_VER "[0-9.]+"' CMakeLists.txt | grep -oE '[0-9.]+')
           COMMIT=$(git -c safe.directory="$GITHUB_WORKSPACE" rev-parse --short HEAD)
