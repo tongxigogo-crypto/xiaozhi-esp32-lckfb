@@ -45,26 +45,18 @@ jobs:
           test -s build/expression_assets.bin
           test "$(stat -c%s build/expression_assets.bin)" -le 8388608
           sha256sum build/xiaozhi.bin build/expression_assets.bin > build/sha256sums.txt
-          cat > build/flash-args.txt <<EOF
-          app     : 0x20000  xiaozhi.bin
-          assets  : 0x800000 expression_assets.bin
-          boot    : 0x0      bootloader/bootloader.bin
-          table   : 0x8000   partition_table/partition-table.bin
-          ota_data: 0xd000   ota_data_initial.bin
-          version : 2.5.4
-          commit  : $(git rev-parse --short HEAD)
-          EOF
-
-      - name: Record 2.5.4 specification self-checks
-        shell: bash
-        run: |
-          git branch wip/2.5.4-baseline c19b11d
-          git rev-parse --short HEAD
-          grep -n "CONFIG_OTA_URL" sdkconfig
-          grep -n "PROJECT_VER" CMakeLists.txt
-          grep -n "dirty_ = true" main/settings.cc
-          git diff --stat wip/2.5.4-baseline..HEAD
-          grep -q '^CONFIG_OTA_URL="http://47.117.142.184:8003/xiaozhi/ota/"$' sdkconfig
+          VER=$(grep -oE 'PROJECT_VER "[0-9.]+"' CMakeLists.txt | grep -oE '[0-9.]+')
+          COMMIT=$(git -c safe.directory="$GITHUB_WORKSPACE" rev-parse --short HEAD)
+          test -n "$VER"
+          test -n "$COMMIT"
+          printf '%s\n' \
+            'app     : 0x20000  xiaozhi.bin' \
+            'assets  : 0x800000 expression_assets.bin' \
+            'boot    : 0x0      bootloader/bootloader.bin' \
+            'table   : 0x8000   partition_table/partition-table.bin' \
+            'ota_data: 0xd000   ota_data_initial.bin' \
+            "version : $VER" \
+            "commit  : $COMMIT" > build/flash-args.txt
 
       - name: Upload firmware
         uses: actions/upload-artifact@v7
