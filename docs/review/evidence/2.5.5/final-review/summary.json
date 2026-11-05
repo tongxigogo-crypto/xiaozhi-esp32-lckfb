@@ -1,0 +1,52 @@
+{
+  "timestamp": "2026-11-05T15:26:29.035184+00:00",
+  "firmware_code": "96fada8d7ae670999a21aabab25976e984f110f4",
+  "server_code": "fbb40a0c25767145dac5d226688f111093f6be8c",
+  "reviewer": "Gemini3.8Flash via MacAntigravity",
+  "reviews": [
+    {
+      "scope": "auth",
+      "verdict": "PASS",
+      "conversation_id": "816c963f-6a04-4da8-81b9-d21a4525758a",
+      "end_marker_verified": true
+    },
+    {
+      "scope": "stream",
+      "verdict": "PASS",
+      "conversation_id": "3b35d36a-a6d3-4f99-9e82-ef85735326b6",
+      "end_marker_verified": true
+    },
+    {
+      "scope": "clock",
+      "verdict": "PASS",
+      "conversation_id": "ff67431f-f07a-4af8-a265-fafa88ff0eed",
+      "end_marker_verified": true
+    },
+    {
+      "scope": "persona",
+      "verdict": "PASS",
+      "conversation_id": "efb3a0c8-a070-4c39-9280-e506e22545d5",
+      "end_marker_verified": true
+    },
+    {
+      "scope": "nvs",
+      "verdict": "PASS",
+      "conversation_id": "a9e6ad62-7c62-48d6-94a8-ea5c261f5d75",
+      "end_marker_verified": true
+    },
+    {
+      "scope": "ops",
+      "verdict": "PASS",
+      "conversation_id": "212311a0-8bc7-439e-b322-5ca3368e3238",
+      "end_marker_verified": true
+    },
+    {
+      "scope": "display-font-label",
+      "verdict": "PASS",
+      "conversation_id": "7f555b03-5a72-4605-acfc-93145484a7dd",
+      "end_marker_verified": true
+    }
+  ],
+  "limits": "static/code/hostscope, not newfirmwarephysicalUI/audio/coldboot acceptance",
+  "provenance": "clock unchanged63f->96; auth/stream/persona serverfbb; NVS unchanged4e->96; ops configs sameaslive except verifieddeploymentstate; finaldisplay96 supersedesearlierdisplay63"
+}

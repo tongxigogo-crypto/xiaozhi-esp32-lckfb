@@ -1,0 +1,17 @@
+{
+  "scope": "stream",
+  "model": "gemini-3.8-flash-high",
+  "conversation_id": "3b35d36a-a6d3-4f99-9e82-ef85735326b6",
+  "response": {
+    "verdict": "PASS",
+    "findings": [],
+    "missing_context": [],
+    "known_physical_gaps": [
+      "Actual UI display rendering on physical device not tested in synthetic suite",
+      "Physical microphone/speaker hardware audio capture, playback, and hardware AEC acoustic performance not physically validated on device",
+      "Cold boot and power cycle transitions not performed on physical board"
+    ],
+    "seen_end_marker": "END-COMPLETE-STREAM-63F665F-FBB40A0"
+  },
+  "duration_seconds": 83.004559
+}
