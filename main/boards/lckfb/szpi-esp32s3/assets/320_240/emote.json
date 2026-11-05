@@ -37,7 +37,7 @@
   },
   {
     "emote": "roast",
-    "src": "roast.eaf",
+    "src": "smirk.eaf",
     "loop": true,
     "fps": 12
   },
@@ -61,7 +61,7 @@
   },
   {
     "emote": "listening",
-    "src": "listening.eaf",
+    "src": "idle.eaf",
     "loop": true,
     "fps": 12
   },
@@ -97,7 +97,7 @@
   },
   {
     "emote": "sulk",
-    "src": "sulk.eaf",
+    "src": "pout.eaf",
     "loop": true,
     "fps": 12
   },

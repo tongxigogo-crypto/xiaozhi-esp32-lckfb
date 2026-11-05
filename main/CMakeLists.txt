@@ -1462,6 +1462,19 @@ if ("${size}" AND "${offset}")
 
         if(EMOTE_EXTERNAL_PATH)
             build_speaker_assets_bin("${ASSETS_PARTITION}" ${EMOTE_RESOLUTION} ${ASSETS_FILE} ${CONFIG_MMAP_FILE_NAME_LENGTH} "${EMOTE_EXTERNAL_PATH}")
+            # The component command tracks its script only. Track external input
+            # files too so incremental builds cannot reuse a stale assets binary.
+            file(GLOB_RECURSE EMOTE_EXTERNAL_INPUTS CONFIGURE_DEPENDS
+                "${EMOTE_EXTERNAL_PATH}/*.eaf"
+                "${EMOTE_EXTERNAL_PATH}/*.json"
+                "${EMOTE_EXTERNAL_PATH}/*.png"
+                "${EMOTE_EXTERNAL_PATH}/*.jpg"
+                "${EMOTE_EXTERNAL_PATH}/*.jpeg"
+                "${EMOTE_EXTERNAL_PATH}/*.ttf"
+            )
+            add_custom_command(OUTPUT ${ASSETS_FILE} APPEND
+                DEPENDS ${EMOTE_EXTERNAL_INPUTS}
+            )
         else()
             build_speaker_assets_bin("${ASSETS_PARTITION}" ${EMOTE_RESOLUTION} ${ASSETS_FILE} ${CONFIG_MMAP_FILE_NAME_LENGTH})
         endif()
