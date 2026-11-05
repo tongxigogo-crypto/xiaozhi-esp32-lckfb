@@ -308,6 +308,10 @@ bool Ota::Upgrade(const std::string& firmware_url, std::function<void(int progre
     bool image_header_checked = false;
     std::string image_header;
 
+    if (!NetworkTime::WaitForTls(firmware_url)) {
+        return false;
+    }
+
     auto network = Board::GetInstance().GetNetwork();
     auto http = network->CreateHttp(0);
     if (auto opened = http->Open("GET", firmware_url); !opened) {
@@ -530,6 +534,10 @@ esp_err_t Ota::Activate() {
         url += "/activate";
     } else {
         url += "activate";
+    }
+
+    if (!NetworkTime::WaitForTls(url)) {
+        return ESP_ERR_TIMEOUT;
     }
 
     auto http = SetupHttp();

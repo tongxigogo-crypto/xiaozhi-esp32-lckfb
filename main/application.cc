@@ -425,6 +425,12 @@ void Application::ActivationTask() {
     // Check for new firmware version
     CheckNewVersion();
 
+    // A cold-boot clock timeout leaves assets pending. Version checking may
+    // have given SNTP time to finish; retry once before protocol startup.
+    if (!assets_version_checked_) {
+        CheckAssetsVersion();
+    }
+
     // Initialize the protocol
     InitializeProtocol();
 
@@ -456,6 +462,7 @@ void Application::CheckAssetsVersion() {
     // This runs in ActivationTask, not the main loop or an audio task.
     if (!download_url.empty() && !NetworkTime::WaitForTls(download_url)) {
         ESP_LOGW(TAG, "Deferring assets download until network time is ready");
+        assets_version_checked_ = false;
         download_url.clear();
     }
     if (!download_url.empty()) {

@@ -27,6 +27,7 @@ class InteractionOverlayTests(unittest.TestCase):
             "void EmoteDisplay::RefreshInteractionOverlay", "void EmoteDisplay::SetInteractionMode",
             "void EmoteDisplay::SetStatus", "void EmoteDisplay::LoadAssets",
             "void EmoteDisplay::UnmountAssets", "void EmoteDisplay::SetEmotion",
+            "bool EmoteDisplay::InsertAnimDialog", "void EmoteDisplay::ShowNotification",
         ]
         bodies = "\n".join(method(source, name) for name in methods)
         header = (ROOT / "main/display/emote_display.h").read_text()
@@ -36,10 +37,15 @@ class InteractionOverlayTests(unittest.TestCase):
 #include <cassert>
 #include <cstring>
 #include <cstdio>
+#include <cinttypes>
 #include <string>
 #include <mutex>
 #include <vector>
-#define ESP_LOGI(...) ((void)0)
+void check_arg(const char* p){assert(p);}
+template<typename T>void check_arg(T){}
+template<typename... Args>void checked_log(const char*,const char*,Args... args){(check_arg(args),...);}
+#define TAG "test"
+#define ESP_LOGI(...) checked_log(__VA_ARGS__)
 #define ESP_LOGE(...) ((void)0)
 #define ESP_LOGW(...) ((void)0)
 #define ESP_OK 0
@@ -56,7 +62,7 @@ const char* LISTENING="聆听"; const char* STANDBY="待机";
 const char* SPEAKING="说话"; const char* ERROR="错误";
 }}
 const char* EMOTE_MGR_EVT_LISTEN="listen"; const char* EMOTE_MGR_EVT_IDLE="idle";
-const char* EMOTE_MGR_EVT_SPEAK="speak"; const char* EMOTE_MGR_EVT_SET="set"; const char* EMOTE_MGR_EVT_BAT="bat";
+const char* EMOTE_MGR_EVT_SPEAK="speak"; const char* EMOTE_MGR_EVT_SET="set"; const char* EMOTE_MGR_EVT_BAT="bat"; const char* EMOTE_MGR_EVT_SYS="sys";
 int emote_lock(void*) {assert(!locked);locked=true;return 0;}
 void emote_unlock(void*) {assert(locked);locked=false;}
 gfx_obj_t* emote_get_obj_by_name(void*, const char* name) {
@@ -73,7 +79,8 @@ void gfx_label_set_opa(gfx_obj_t*,int){assert(locked);}
 void gfx_obj_set_visible(gfx_obj_t* o,bool b){assert(locked);o->visible=b;}
 void gfx_label_set_font(gfx_obj_t* o,void* f){assert(locked);o->font=f;}
 int emote_set_event_msg(void*,const char*,const char*){return 0;}
-int emote_set_anim_emoji(void*,const char*){return 0;}
+int emote_set_anim_emoji(void*,const char*){assert(loaded);return 0;}
+bool emote_insert_anim_dialog(void*,const char*,uint32_t){assert(loaded);return true;}
 int emote_get_asset_data_by_name(void*,const char* n,const uint8_t** data,size_t* len){
  assert(mounted);assert(!strcmp(n,"font_puhui_common_20_4.bin"));
  static uint8_t bytes[32];*data=bytes;*len=sizeof(bytes);
@@ -94,6 +101,8 @@ public:
  EmoteDisplay(){emote_handle_=this;}
  ~EmoteDisplay();
  void SetEmotion(const char*);
+ bool InsertAnimDialog(const char*,uint32_t);
+ void ShowNotification(const char*,int=3000);
  void SetInteractionMode(bool);
  void SetStatus(const char*);
  void LoadAssets();
@@ -127,7 +136,10 @@ int main(){
  }
  assert(font_live==0);
  mounted=true;load_failure=true;
- {emote::EmoteDisplay d;d.LoadAssets();assert(loaded && font_live==0);
+ {emote::EmoteDisplay d;d.LoadAssets();assert(!loaded && font_live==0);
+ d.SetEmotion("neutral");d.SetStatus(Lang::Strings::LISTENING);
+ assert(!d.InsertAnimDialog("happy",10));
+ d.SetEmotion(nullptr);d.ShowNotification(nullptr);assert(!d.InsertAnimDialog(nullptr,10));
  load_failure=false;d.LoadAssets();assert(loaded && font_live==1);}
  assert(!loaded && font_live==0);
  mounted=true;font_missing=true;

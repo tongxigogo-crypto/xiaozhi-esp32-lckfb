@@ -145,8 +145,8 @@ EmoteDisplay::~EmoteDisplay() {
 
 void EmoteDisplay::SetEmotion(const char* const emotion) {
     std::lock_guard<std::recursive_mutex> guard(overlay_mutex_);
-    ESP_LOGI(TAG, "SetEmotion: %s", emotion);
-    if (emote_handle_ && emotion && strlen(emotion) > 0) {
+    ESP_LOGI(TAG, "SetEmotion: %s", emotion ? emotion : "");
+    if (emote_handle_ && assets_loaded_ && emotion && strlen(emotion) > 0) {
         const char* animation = emotion;
         // Application requests "neutral" immediately after setting listening
         // or idle status. In the clean layout keep the matching state animation.
@@ -215,7 +215,7 @@ void EmoteDisplay::SetEventMessage(const char* event, const char* message) {
 }
 
 void EmoteDisplay::RefreshBatteryOverlay() {
-    if (emote_handle_ == nullptr) {
+    if (emote_handle_ == nullptr || !assets_loaded_) {
         return;
     }
 
@@ -348,7 +348,7 @@ void EmoteDisplay::SetStatus(const char* const status) {
 
 void EmoteDisplay::ShowNotification(const char* notification, int duration_ms) {
     std::lock_guard<std::recursive_mutex> guard(overlay_mutex_);
-    ESP_LOGI(TAG, "ShowNotification: %s", notification);
+    ESP_LOGI(TAG, "ShowNotification: %s", notification ? notification : "");
     if (emote_handle_ && notification && strlen(notification) > 0) {
         SetEventMessage(EMOTE_MGR_EVT_SYS, notification);
     }
@@ -455,12 +455,14 @@ void EmoteDisplay::LoadAssets() {
         gfx_font_lv_delete(interaction_font_);
         interaction_font_ = nullptr;
     }
-    // Mark as loaded even on failure so partially created objects are cleaned up.
-    assets_loaded_ = true;
     if (emote_load_assets(emote_handle_) != ESP_OK) {
+        // The loader may have allocated tables/objects before failing. Clean
+        // them now, while keeping rendering/event entry points disabled.
+        emote_unload_assets(emote_handle_);
         ESP_LOGE(TAG, "Could not load expression assets");
         return;
     }
+    assets_loaded_ = true;
     const uint8_t* data = nullptr;
     size_t size = 0;
     if (emote_get_asset_data_by_name(emote_handle_, "font_puhui_common_20_4.bin", &data, &size) ==
@@ -502,8 +504,8 @@ bool EmoteDisplay::StopAnimDialog() {
 
 bool EmoteDisplay::InsertAnimDialog(const char* emoji_name, uint32_t duration_ms) {
     std::lock_guard<std::recursive_mutex> guard(overlay_mutex_);
-    ESP_LOGI(TAG, "InsertAnimDialog: %s, %" PRIu32, emoji_name, duration_ms);
-    if (emote_handle_ && emoji_name) {
+    ESP_LOGI(TAG, "InsertAnimDialog: %s, %" PRIu32, emoji_name ? emoji_name : "", duration_ms);
+    if (emote_handle_ && assets_loaded_ && emoji_name) {
         return emote_insert_anim_dialog(emote_handle_, emoji_name, duration_ms);
     }
     return false;

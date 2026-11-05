@@ -38,6 +38,10 @@ int main(){
   ota=(ROOT/"main/ota.cc").read_text()
   self.assertLess(ota.index("NetworkTime::WaitForTls"),ota.index('http->Open(method, url)'))
   self.assertNotIn('ts += (timezone_offset',ota)
+  upgrade=ota[ota.index("bool Ota::Upgrade("):ota.index("std::string Ota::GetActivationPayload")]
+  activate=ota[ota.index("esp_err_t Ota::Activate()"):]
+  self.assertLess(upgrade.index("NetworkTime::WaitForTls"),upgrade.index('http->Open("GET"'))
+  self.assertLess(activate.index("NetworkTime::WaitForTls"),activate.index('http->Open("POST"'))
   app=(ROOT/"main/application.cc").read_text()
   part=app[app.index("void Application::CheckAssetsVersion"):app.index("void Application::CheckNewVersion")]
   self.assertLess(part.index("NetworkTime::WaitForTls"),part.index('settings.EraseKey("download_url")'))
@@ -80,5 +84,75 @@ int main(){
    exe=folder/"runtime"
    subprocess.run([shutil.which("c++"),"-std=c++17","-Wall","-Wextra","-Werror","-I",str(folder),"-I",str(ROOT/"main"),str(ROOT/"main/network_time.cc"),str(source),"-o",str(exe)],check=True)
    subprocess.run([str(exe)],check=True)
+
+
+ def test_pending_assets_are_retried_after_clock_becomes_ready(self):
+  source=(ROOT/"main/application.cc").read_text()
+  body=source[source.index("void Application::CheckAssetsVersion()"):source.index("void Application::CheckNewVersion()")]
+  activation=source[source.index("void Application::ActivationTask()"):source.index("void Application::CheckAssetsVersion()")]
+  self.assertLess(activation.index("CheckNewVersion();"),activation.index("if (!assets_version_checked_)"))
+  self.assertLess(activation.index("if (!assets_version_checked_)"),activation.index("InitializeProtocol();"))
+  fixture=r"""
+#include <cassert>
+#include <string>
+#include <functional>
+#include <cstddef>
+#include <cstdio>
+#define ESP_LOGW(...) ((void)0)
+#define BOARD_NAME "fixture"
+#define pdMS_TO_TICKS(x) (x)
+inline void vTaskDelay(int){}
+namespace NetworkTime{bool ready=false;bool WaitForTls(const std::string&){return ready;}}
+namespace Lang{
+namespace Strings{const char* FOUND_NEW_ASSETS="%s";const char* LOADING_ASSETS="";const char* PLEASE_WAIT="";const char* ERROR="";const char* DOWNLOAD_ASSETS_FAILED="";}
+namespace Sounds{int OGG_UPGRADE=1,OGG_EXCLAMATION=2;}
+}
+enum class PowerSaveLevel{PERFORMANCE,LOW_POWER};
+enum {kDeviceStateUpgrading,kDeviceStateActivating};
+std::string pending="https://example.test/assets";
+struct Settings{Settings(const char*,bool){}std::string GetString(const char*){return pending;}void EraseKey(const char*){pending.clear();}};
+struct Display{void SetChatMessage(const char*,const char*){}void SetEmotion(const char*){}};
+struct Board{
+ static Board& GetInstance(){static Board b;return b;}
+ Display* GetDisplay(){static Display d;return &d;}
+ void SetPowerSaveLevel(PowerSaveLevel){}
+};
+struct Assets{
+ int downloaded=0,applied=0;
+ static Assets& GetInstance(){static Assets a;return a;}
+ bool partition_valid(){return true;}
+ template<class F>bool Download(const std::string&,F){++downloaded;return true;}
+ void Apply(){++applied;}
+};
+class Application{
+public:
+ bool assets_version_checked_=false;
+ void CheckAssetsVersion();
+ template<class...T>void Alert(T...){}
+ void SetDeviceState(int){}
+ void Schedule(std::function<void()>){}
+};
+"""
+  fixture+=body+r"""
+int main(){
+ Application app;auto& assets=Assets::GetInstance();
+ app.CheckAssetsVersion();
+ assert(!app.assets_version_checked_ && !pending.empty());
+ assert(assets.downloaded==0 && assets.applied==1);
+ NetworkTime::ready=true;app.CheckAssetsVersion();
+ assert(app.assets_version_checked_ && pending.empty());
+ assert(assets.downloaded==1 && assets.applied==2);
+ app.CheckAssetsVersion();assert(assets.downloaded==1 && assets.applied==2);
+}"""
+  with tempfile.TemporaryDirectory() as tmp:
+   f=Path(tmp)/"assets.cc";f.write_text(fixture);exe=Path(tmp)/"assets"
+   subprocess.run([shutil.which("c++"),"-std=c++17","-Wall","-Wextra","-Werror","-Wno-format",str(f),"-o",str(exe)],check=True)
+   subprocess.run([str(exe)],check=True)
+   # The same behavioral fixture must catch the previous sticky flag.
+   self.assertIn("assets_version_checked_ = false;", fixture)
+   f.write_text(fixture.replace("assets_version_checked_ = false;", ""))
+   subprocess.run([shutil.which("c++"),"-std=c++17","-Wno-format",str(f),"-o",str(exe)],check=True)
+   broken=subprocess.run([str(exe)],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+   self.assertNotEqual(broken.returncode,0)
 
 if __name__=="__main__":unittest.main()
