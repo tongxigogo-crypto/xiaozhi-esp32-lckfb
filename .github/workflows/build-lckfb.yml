@@ -28,7 +28,9 @@ jobs:
         run: |
           command -v g++ || (apt-get update && apt-get install -y g++)
           g++ --version
-          python -m pip install esp-idf-nvs-partition-gen==0.3.0
+          source "$IDF_PATH/export.sh"
+          python -m pip install --no-deps --target /tmp/xiaofeiyu-hostdeps esp-idf-nvs-partition-gen==0.3.0
+          export PYTHONPATH="/tmp/xiaofeiyu-hostdeps"
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           python -m unittest discover -s scripts/tests -p 'test_touch_gesture_runner.py' -v
           python -m unittest discover -s scripts/tests -p 'test_settings_runner.py' -v
