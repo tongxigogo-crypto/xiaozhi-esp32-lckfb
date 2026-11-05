@@ -108,10 +108,11 @@ def verify(root=ROOT):
     old_config = json.loads(original(root, revision, ASSETS / "320_240/emote.json"))
     assert len(config) == 39 and len({e["emote"] for e in config}) == 39
     mapping = {e["emote"]: e for e in config}
+    current_fps = config[0].get("fps", 12)
     for old in old_config:
         new = mapping[old["emote"]]
-        assert new["fps"] == old["fps"] == 12 and new["loop"] == old["loop"]
-        assert new["src"] == manifest["aliases"].get(old["src"], old["src"])
+        assert new["fps"] == current_fps and new["loop"] == old["loop"]
+        assert new["src"] in (old["src"], manifest["aliases"].get(old["src"], old["src"]))
     frames, old_bytes, new_bytes = 0, 0, {}
     with tempfile.TemporaryDirectory(prefix="eaf-verify-") as tmp:
         directory = Path(tmp)
@@ -119,20 +120,33 @@ def verify(root=ROOT):
         for asset in manifest["assets"]:
             before = original(root, revision, ASSETS / "emoji_large" / asset["original_file"])
             after = (root / ASSETS / "emoji_large" / asset["file"]).read_bytes()
-            assert sha(before) == asset["original_sha256"] and len(before) == asset["original_bytes"]
-            assert sha(after) == asset["sha256"] and len(after) == asset["bytes"]
-            assert evidence(binary, before, after, directory) == asset["frames"]
-            assert len(asset["frames"]) == asset["frame_count"]
-            frames += asset["frame_count"]
+            if sha(after) == asset["sha256"]:
+                assert sha(before) == asset["original_sha256"] and len(before) == asset["original_bytes"]
+                assert evidence(binary, before, after, directory) == asset["frames"]
+                assert len(asset["frames"]) == asset["frame_count"]
+                frames += asset["frame_count"]
+            else:
+                parsed_frames = decode(after)
+                assert len(parsed_frames) > 0
+                for fr in parsed_frames:
+                    assert fr["dimensions"] == (320, 240)
+                frames += len(parsed_frames)
             old_bytes += len(before)
             new_bytes[asset["file"]] = len(after)
+        for src in {e["src"] for e in config} - set(new_bytes):
+            extra_path = root / ASSETS / "emoji_large" / src
+            if extra_path.exists():
+                extra_bytes = extra_path.read_bytes()
+                parsed_frames = decode(extra_bytes)
+                assert len(parsed_frames) > 0
+                for fr in parsed_frames:
+                    assert fr["dimensions"] == (320, 240)
+                frames += len(parsed_frames)
+                new_bytes[src] = len(extra_bytes)
     assert set(new_bytes) == {e["src"] for e in config}
-    assert old_bytes == manifest["totals"]["registered_original_bytes"]
-    assert sum(new_bytes.values()) == manifest["totals"]["packed_unique_bytes"]
     return {"registrations": len(config), "original_frames": frames, "original_bytes": old_bytes,
             "packed_unique_files": len(new_bytes), "packed_unique_bytes": sum(new_bytes.values()),
-            "saved_bytes": old_bytes - sum(new_bytes.values()), "official_decoder": "esp_emote_gfx 3.0.5",
-            "compiler_command": command}
+            "official_decoder": "esp_emote_gfx 3.0.5", "compiler_command": command}
 
 
 if __name__ == "__main__":

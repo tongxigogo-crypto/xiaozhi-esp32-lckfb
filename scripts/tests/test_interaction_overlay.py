@@ -135,14 +135,14 @@ int main(){
  assert(state.x==6 && state.y==28 && state.w==150 && state.h==24);
  assert(state.visible && state.text=="聆听");
  assert(mode.font && state.font==mode.font && font_live==1);
- assert(!battery.visible && battery.text.empty());
+ assert(battery.visible && battery.text=="USB");
  d.SetEmotion("happy");
  assert(state.text=="聆听" && mode.text=="手动");
  d.SetInteractionMode(true);d.SetStatus(Lang::Strings::STANDBY);
- assert(mode.text=="自动" && state.text=="待机");
+ assert(mode.text=="自动" && state.text=="空闲");
  d.LoadAssets(); // unload old labels before releasing their font
  assert(font_live==1 && font_freed==1);
- assert(state.text=="待机" && mode.text=="自动");
+ assert(state.text=="空闲" && mode.text=="自动");
  d.SetStatus(Lang::Strings::SPEAKING);assert(state.text=="说话");
  d.SetStatus(nullptr);assert(!state.visible && state.text.empty());
  d.UnmountAssets();assert(font_live==0);

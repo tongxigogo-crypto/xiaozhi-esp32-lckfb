@@ -156,11 +156,11 @@ void EmoteDisplay::SetEmotion(const char* const emotion) {
                 emote_get_obj_by_name(emote_handle_, "status_icon") == nullptr;
             emote_unlock(emote_handle_);
             if (clean_layout) {
-                if (interaction_status_ == Lang::Strings::LISTENING) {
+                if (interaction_status_ == Lang::Strings::LISTENING || interaction_status_.find("聆听") != std::string::npos) {
                     animation = "listening";
-                } else if (interaction_status_ == Lang::Strings::SPEAKING) {
+                } else if (interaction_status_ == Lang::Strings::SPEAKING || interaction_status_.find("说话") != std::string::npos) {
                     animation = "speaking";
-                } else if (interaction_status_ == Lang::Strings::STANDBY) {
+                } else if (interaction_status_ == Lang::Strings::STANDBY || interaction_status_ == "空闲" || interaction_status_.find("待") != std::string::npos) {
                     animation = "idle";
                 }
             }
@@ -229,8 +229,10 @@ void EmoteDisplay::RefreshBatteryOverlay() {
     }
 
     if (!battery_valid_) {
-        gfx_label_set_text(label, "");
-        gfx_obj_set_visible(label, false);
+        gfx_label_set_text(label, "USB");
+        gfx_label_set_color(label, GFX_COLOR_HEX(0x22C55E));
+        gfx_label_set_opa(label, 240);
+        gfx_obj_set_visible(label, true);
         emote_unlock(emote_handle_);
         return;
     }
@@ -238,8 +240,8 @@ void EmoteDisplay::RefreshBatteryOverlay() {
     char text[8];
     std::snprintf(text, sizeof(text), "%d%%", battery_level_);
     gfx_label_set_text(label, text);
-    gfx_label_set_color(label, GFX_COLOR_HEX(0xB8D8E8));
-    gfx_label_set_opa(label, 160);
+    gfx_label_set_color(label, GFX_COLOR_HEX(0x22C55E));
+    gfx_label_set_opa(label, 240);
     gfx_obj_set_visible(label, true);
     emote_unlock(emote_handle_);
 }
@@ -290,12 +292,16 @@ void EmoteDisplay::RefreshInteractionOverlay() {
             gfx_label_set_font(label, interaction_font_);
         }
         gfx_label_set_text(label, visible ? text : "");
-        gfx_label_set_color(label, GFX_COLOR_HEX(0xB8D8E8));
-        gfx_label_set_opa(label, 210);
+        gfx_label_set_color(label, GFX_COLOR_HEX(0x38BDF8));
+        gfx_label_set_opa(label, 240);
         gfx_obj_set_visible(label, visible);
     };
     update_label("mode_label", automatic_mode_ ? "自动" : "手动");
-    update_label("state_label", interaction_status_.c_str());
+    const char* state_text = interaction_status_.c_str();
+    if (interaction_status_ == Lang::Strings::STANDBY || interaction_status_ == "待命" || interaction_status_ == "待机") {
+        state_text = "空闲";
+    }
+    update_label("state_label", state_text);
     emote_unlock(emote_handle_);
 }
 
