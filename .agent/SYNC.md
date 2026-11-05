@@ -10,7 +10,8 @@
 ```
 仓库  tongxigogo-crypto/xiaozhi-esp32-lckfb
 分支  wip/2.5.4-baseline
-HEAD  72690ca
+HEAD  以 git rev-parse --short fork/wip/2.5.4-baseline 为准
+      内容基线起点 72690ca（首个固化提交）
 ```
 
 **这是唯一有效基线。** 之前的一切说法作废：
@@ -86,6 +87,6 @@ git rev-parse --short fork/wip/2.5.4-baseline
 
 ## 七、审查怎么做
 
-见 `.agent/REVIEW_PROTOCOL.md`。核心一条：**只审 `72690ca` 这个提交，不审工作区。**
+见 `.agent/REVIEW_PROTOCOL.md`。核心一条：**只审 `wip/2.5.4-baseline` 的当前 HEAD，不审工作区。**
 
 审查结论请落到 `docs/review/72690ca-<你的名字>.md`，格式：必须改 / 建议改 / 可忽略，每条带证据（文件:行 或 命令输出）。
