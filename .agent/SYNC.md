@@ -98,3 +98,7 @@ git rev-parse --short fork/wip/2.5.4-baseline
 ## 最新用户授权（2026-11-05T18:24:21+08:00，优先于本文历史职责限制）
 
 开发、测试、配置修复、构建和烧录准备统一由 Codex 完成；独立审查由 Gemini 完成。T7 相机工具注册并入 2.5.4，表情资源执行有备份的压缩优化。允许为本轮准备触发候选构建、下载和校验产物；不代表已经批准实际烧录或公开发布。保留模型与原始素材；密钥只存私密配置，禁止写入提交、文档和日志。
+
+## 2026-11-05T19:50:56+0800 实施收口同步
+
+开发分支feat/2.5.4-ota-public；功能提交3672528经Gemini3.8Flash（Antigravity）PASS，报告docs/review/2.5.4-gemini-3.8-flash.md。后续证据/状态提交不改main/scripts/workflow。先读STATUS首节，最终产物读项目outputs/2.5.4-final/latest-release.json。禁止从历史main或旧merged推断当前可烧版本。真正烧录和OTA公开发布仍未执行。

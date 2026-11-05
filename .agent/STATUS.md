@@ -1,3 +1,34 @@
+# 最新生效状态：2.5.4 完整候选（Codex / Gemini）
+
+> 更新：2026-11-05T19:50:56+0800。此节优先于下方保留的历史清单。
+> 开发与验证：Codex；独立代码审查：Gemini 3.8 Flash（Antigravity）。
+> 工作分支：feat/2.5.4-ota-public，从用户固定起点 c19b11d 继续。
+
+Gemini审查PASS的功能提交为3672528：T1–T5公网OTA、T7相机注册、能力协商的拍照前token刷新、24表情无损压缩与去重、左上角自动/手动和真实状态显示。无采样的电量隐藏，不推断USB/电池电源。报告见 docs/review/2.5.4-gemini-3.8-flash.md。
+
+| 编译/烧录前条件 | 已核实证据 |
+| --- | --- |
+| 编译success | run42019686320 @3672528；后续证据/同步提交也构建同HEAD |
+| artifact四文件 | app、expression_assets、sha256sums、flash-args已下载 |
+| version/commit对应 | 2.5.4/3672528；app header chip9；两项SHA256匹配 |
+| assets ≤8MiB | 5,654,752字节；余2,733,856；EAF载荷减23.02%，168帧完全等价 |
+| 固定server.auth_key | 私密mode600配置生效；重启前签发token重启后仍有效 |
+| 旧固件备份 | 实板16MiB整片读出并复核SHA256；私密保存，不上传NVS |
+| T7决策 | 用户已决定并入，已实现 |
+| 烧录策略 | 板上同分区布局、ota0生效；app@0x20000 + assets@0x800000，保留boot/table/otadata |
+
+最终交付和后续同HEAD构建的精确SHA、run、哈希、路径统一看项目 outputs/2.5.4-final/latest-release.json。该manifest在下载校验后生成。文档自引用不能代替二进制来源。禁止使用旧firmware_bin/merged-binary.bin配套烧录。
+
+服务端在本机分支 codex/2.5.4-server-readiness@fbf654b，未推向上游官方仓库。公网红图识别成功、非法认证401、三次真搜索成功，12项服务端回归通过。原未提交工作独立snapshot21d3573；模型未删除。运行在 ~/Services/xiaofeiyu/current，共享state/；LaunchAgent com.xiaofeiyu.server 已运行并实测重启，需用户登录。原frpc保留。开发源码仍在Desktop，通过版本化运行副本规避launchd的Desktop TCC限制。
+
+主机132项：127PASS，5个只针对已删除上游多板workflow的测试预期skip。CI含触摸、Settings/OTA、camera、vision refresh、UI字体生命周期、EAF和增量资源依赖回归。中文26字形齐全；静态预览不等于实机。
+
+烧录后验收：24表情帧率/堆、模式及状态、触摸四手势、真实拍照和超过1小时后的刷新、麦克风/扬声器/对话。未实际烧录、未合并main、未发布OTA。P2保留TLS/WSS、公网WS访问加固、VPS到期迁移。相机失败底层错误码属Gemini建议项，驱动支持后再做。
+
+以下原文为历史快照，授权、负责人、数字及状态冲突时，以本节与最终manifest为准。
+
+---
+
 # 小肥鱼 · 项目进度与待办（Agent 清单）
 
 > 版本：v1.0（2026-11-05 18:30）
