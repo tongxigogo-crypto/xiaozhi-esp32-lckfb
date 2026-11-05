@@ -84,6 +84,32 @@ class ProvisionTests(unittest.TestCase):
             n.write_entry("blob",base64.b64encode(b"b"*4000).decode(),"base64")
         with self.assertRaises(ValueError):snapshot(out.getvalue())
 
+    def test_reserved_page_and_empty_blob_preserved(self):
+        from esp_idf_nvs_partition_gen import nvs_partition_gen as gen
+        # check_size is the official CLI's translation of physical partition size.
+        capacity, readonly = gen.check_size("0x4000")
+        self.assertEqual(capacity, 0x3000)
+        self.assertFalse(readonly)
+        fixture=self.fixture()
+        fixture["phy"]["zero"] = ("blob",b"")
+        raw=generate(fixture,16384)
+        self.assertEqual(len(raw),16384)
+        self.assertEqual(raw[-4096:],bytes([255])*4096)
+        self.assertEqual(snapshot(raw),fixture)
+
+    def test_cli_rejects_public_input_before_creating_output(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp); inp=root/"input.bin";creds=root/"credentials.json";out=root/"out.bin"
+            inp.write_bytes(generate(self.fixture(),16384));inp.chmod(0o644)
+            creds.write_text(json.dumps(self.creds()));creds.chmod(0o600)
+            args=[sys.executable,str(SCRIPTS/"provision_device_nvs.py"),
+                  "--input",str(inp),"--credentials",str(creds),"--output",str(out),
+                  "--expected-mac","9c:13:9e:8a:c7:74"]
+            result=subprocess.run(args,capture_output=True,text=True)
+            self.assertNotEqual(result.returncode,0)
+            self.assertFalse(out.exists())
+            self.assertNotIn(TOKEN,result.stdout+result.stderr)
+
     def test_bad_credentials_or_mac_rejected(self):
         raw=generate(self.fixture(),16384)
         for field,value in [("token","short"),("token",TOKEN+"\n"),
@@ -97,7 +123,7 @@ class ProvisionTests(unittest.TestCase):
     def test_cli_private_exclusive_no_secret_output_and_wrong_mac(self):
         with tempfile.TemporaryDirectory() as temp:
             root=Path(temp); inp=root/"input.bin";creds=root/"credentials.json";out=root/"output.bin"
-            inp.write_bytes(generate(self.fixture(),16384))
+            inp.write_bytes(generate(self.fixture(),16384));inp.chmod(0o600)
             creds.write_text(json.dumps(self.creds()));creds.chmod(0o600)
             args=[sys.executable,str(SCRIPTS/"provision_device_nvs.py"),
                   "--input",str(inp),"--credentials",str(creds),"--output",str(out),

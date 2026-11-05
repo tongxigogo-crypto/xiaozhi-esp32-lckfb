@@ -11,6 +11,7 @@ from pathlib import Path
 import re
 import sys
 from urllib.parse import urlsplit
+from zlib import crc32
 
 from vendor.esp_idf_v6_1.nvs_parser import NVS_Partition
 
@@ -59,8 +60,11 @@ def snapshot(raw):
             kind=meta["type"]
             _require(kind in set(ENCODINGS)|{"string","blob","blob_data","blob_index"})
             if kind in {"string","blob","blob_data"}:
-                _require(meta["crc"]["data_original"]==meta["crc"]["data_computed"])
-                _require(len(entry.children)>0)
+                # The pinned official parser does not compute a zero-length
+                # payload CRC (span=1). Validate the exact declared bytes here,
+                # including crc32(b"", 0xffffffff), without modifying the vendor.
+                _require(meta["crc"]["data_original"]==crc32(_payload(entry),0xffffffff))
+                _require(entry.data["size"]==0 or len(entry.children)>0)
             else:
                 _require(span==1)
             key=_key(entry.key)
@@ -124,6 +128,8 @@ def generate(values,size):
     from esp_idf_nvs_partition_gen import nvs_partition_gen as gen
     _require(size>=12288 and size%4096==0)
     out=io.BytesIO()
+    # Match official 0.3.0 check_size(): its input capacity excludes the last
+    # 4096-byte reserve. NVS.__exit__ adds that reserve back to the output.
     with gen.nvs_open(out,size-4096,gen.Page.VERSION2) as nvs:
         for namespace,items in values.items():
             nvs.write_namespace(_key(namespace))
@@ -182,6 +188,7 @@ def main(argv=None):
     args=parser.parse_args(argv)
     try:
         _require(args.credentials.stat().st_mode&0o077==0)
+        _require(args.input.stat().st_mode&0o077==0)
         original=args.input.read_bytes()
         credentials=json.loads(args.credentials.read_text(encoding="utf-8"))
         # The generator can print input values on exceptional paths; never forward it.
