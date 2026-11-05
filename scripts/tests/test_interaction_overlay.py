@@ -32,6 +32,7 @@ class InteractionOverlayTests(unittest.TestCase):
         header = (ROOT / "main/display/emote_display.h").read_text()
         fields = header[header.index("    emote_handle_t emote_handle_"):header.index("\n};")]
         cpp = r"""
+#include <cstdint>
 #include <cassert>
 #include <cstring>
 #include <cstdio>

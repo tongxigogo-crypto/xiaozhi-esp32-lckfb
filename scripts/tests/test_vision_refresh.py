@@ -6,6 +6,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 HARNESS = r"""
+#include <cstdint>
 #include <cstring>
 #include <functional>
 #include <iostream>

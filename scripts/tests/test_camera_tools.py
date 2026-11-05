@@ -49,6 +49,7 @@ class CameraToolRegistrationTests(unittest.TestCase):
         driver = textwrap.dedent(
             r"""
             #include <cassert>
+            #include <cstdint>
             #include <expected>
             #include <functional>
             #include <initializer_list>
