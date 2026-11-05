@@ -45,6 +45,8 @@ public:
 
 private:
     // Helpers require overlay_mutex_; each takes the graphics lock internally.
+    // Adapt legacy status events to layouts without status icons.
+    void SetEventMessage(const char* event, const char* message);
     void RefreshBatteryOverlay();
     void RefreshInteractionOverlay();
 

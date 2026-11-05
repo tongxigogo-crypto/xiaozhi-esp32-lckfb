@@ -19,3 +19,7 @@ Execution:
 6. Deploy only authorized configuration steps and device provisioning after confirmed handoff; preserve rollback. Sync Agent/Obsidian and distinguish code/endpoint/device evidence.
 
 Acceptance: anonymous/forged/missing credentials denied including allowed MAC; OTA cannot mint credentials from spoofed IDs; valid paired device works over verified TLS; actual Mac controls retain confirmation; no missing icon/listen errors in clean display path; no secrets in Git/logs. Pending external gates are recorded precisely.
+
+## WorkBuddy v1 handoff accepted 2026-11-05T21:23:28+0800
+
+Stable complete report: /Users/tong/Desktop/网页设计/机器人diy/00-现行基线/派工单-2.5.4-真机问题-v1.0-2026-11-05.md; SHA256 cd14139174c5d320d7e98a800c59d1ed9b11319170225fd06438b40bc2e760b7. Add boundedstream gate parsing fornormal+direct_answer, syncpluginoffload/boundednoteslookup, timeoutfallback and exactlyoneLAST. Reportlen4hypothesis notconfirmed: oldcodealreadybufferedleadingbracket; direct_answer bypass reproduced. Resource-onlydeletion advice contradictsexistingcleanlayout andpinnedengineorder. Newfirmware2.5.5 mustenableTLSdatecheck +coldbootSNTP beforeassets/OTA, fixserver-timeUTCoffsetbug. Userexplicitlyauthorizeddeviceconfigwrites andhandedoverserial; freshNVSbackupmadeandvalidated. Firmwareapplicationwrite stillpreparedforfinalreview ratherthanreuseold2.5.4package.

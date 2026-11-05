@@ -147,9 +147,70 @@ void EmoteDisplay::SetEmotion(const char* const emotion) {
     std::lock_guard<std::recursive_mutex> guard(overlay_mutex_);
     ESP_LOGI(TAG, "SetEmotion: %s", emotion);
     if (emote_handle_ && emotion && strlen(emotion) > 0) {
-        emote_set_anim_emoji(emote_handle_, emotion);
+        const char* animation = emotion;
+        // Application requests "neutral" immediately after setting listening
+        // or idle status. In the clean layout keep the matching state animation.
+        if (std::strcmp(emotion, "neutral") == 0 && assets_loaded_ &&
+            emote_lock(emote_handle_) == ESP_OK) {
+            const bool clean_layout =
+                emote_get_obj_by_name(emote_handle_, "status_icon") == nullptr;
+            emote_unlock(emote_handle_);
+            if (clean_layout) {
+                if (interaction_status_ == Lang::Strings::LISTENING) {
+                    animation = "listening";
+                } else if (interaction_status_ == Lang::Strings::SPEAKING) {
+                    animation = "speaking";
+                } else if (interaction_status_ == Lang::Strings::STANDBY) {
+                    animation = "idle";
+                }
+            }
+        }
+        emote_set_anim_emoji(emote_handle_, animation);
         RefreshBatteryOverlay();
         RefreshInteractionOverlay();
+    }
+}
+
+void EmoteDisplay::SetEventMessage(const char* event, const char* message) {
+    // Callers hold overlay_mutex_, which serializes this with asset reloads.
+    if (!emote_handle_ || !assets_loaded_ || !event) {
+        return;
+    }
+    // BAT only updates the component's numeric cache. Unlike IDLE it does not
+    // request any icons, and keeping it synchronized supports legacy layouts.
+    if (std::strcmp(event, EMOTE_MGR_EVT_BAT) == 0) {
+        emote_set_event_msg(emote_handle_, event, message);
+        return;
+    }
+    if (emote_lock(emote_handle_) != ESP_OK) {
+        return;
+    }
+    const bool legacy_widgets = emote_get_obj_by_name(emote_handle_, "status_icon") != nullptr &&
+                                (std::strcmp(event, EMOTE_MGR_EVT_LISTEN) != 0 ||
+                                 emote_get_obj_by_name(emote_handle_, "listen_anim") != nullptr);
+    if (legacy_widgets) {
+        emote_unlock(emote_handle_);
+        emote_set_event_msg(emote_handle_, event, message);
+        return;
+    }
+    // expression1.0.2 fetches icon resources BEFORE checking widget presence.
+    // The clean layout intentionally omits these widgets/resources, so update
+    // optional text directly instead of issuing an icon-bearing event.
+    if (auto label = emote_get_obj_by_name(emote_handle_, "toast_label")) {
+        gfx_label_set_text(label, message ? message : "");
+        gfx_obj_set_visible(label, message && message[0] != '\0');
+    }
+    emote_unlock(emote_handle_);
+
+    // Text/notifications must not replace an explicit emotion from touch or AI.
+    if (!message) {
+        if (std::strcmp(event, EMOTE_MGR_EVT_LISTEN) == 0) {
+            emote_set_anim_emoji(emote_handle_, "listening");
+        } else if (std::strcmp(event, EMOTE_MGR_EVT_IDLE) == 0) {
+            emote_set_anim_emoji(emote_handle_, "idle");
+        } else if (std::strcmp(event, EMOTE_MGR_EVT_SPEAK) == 0) {
+            emote_set_anim_emoji(emote_handle_, "speaking");
+        }
     }
 }
 
@@ -241,25 +302,25 @@ void EmoteDisplay::SetBatteryLevel(const int level, const bool charging) {
     char event_msg[16];
     std::snprintf(event_msg, sizeof(event_msg), "%d,%d", battery_charging_ ? 1 : 0,
                   battery_level_);
-    emote_set_event_msg(emote_handle_, EMOTE_MGR_EVT_BAT, event_msg);
+    SetEventMessage(EMOTE_MGR_EVT_BAT, event_msg);
     RefreshBatteryOverlay();
     RefreshInteractionOverlay();
 }
 
 void EmoteDisplay::SetChatMessage(const char* const role, const char* const content) {
     std::lock_guard<std::recursive_mutex> guard(overlay_mutex_);
-    ESP_LOGI(TAG, "SetChatMessage: %s, %s", role, content);
+    ESP_LOGI(TAG, "SetChatMessage: %s, %s", role ? role : "", content ? content : "");
     if (emote_handle_ && content && strlen(content) > 0) {
-        if ((std::strcmp(role, "system") == 0) && std::strstr(content, "xiaozhi.me")) {
+        if (role && (std::strcmp(role, "system") == 0) && std::strstr(content, "xiaozhi.me")) {
             size_t len = strlen(content);
             char* new_content = new char[len + 1];
             strcpy(new_content, content);
             std::replace(new_content, new_content + len, static_cast<char>(0x0A),
                          static_cast<char>(0x20));
-            emote_set_event_msg(emote_handle_, EMOTE_MGR_EVT_SYS, new_content);
+            SetEventMessage(EMOTE_MGR_EVT_SYS, new_content);
             delete[] new_content;
         } else {
-            emote_set_event_msg(emote_handle_, EMOTE_MGR_EVT_SPEAK, content);
+            SetEventMessage(EMOTE_MGR_EVT_SPEAK, content);
         }
     }
     RefreshBatteryOverlay();
@@ -272,13 +333,13 @@ void EmoteDisplay::SetStatus(const char* const status) {
     ESP_LOGI(TAG, "SetStatus: %s", status ? status : "");
     if (emote_handle_ && status && strlen(status) > 0) {
         if (std::strcmp(status, Lang::Strings::LISTENING) == 0) {
-            emote_set_event_msg(emote_handle_, EMOTE_MGR_EVT_LISTEN, NULL);
+            SetEventMessage(EMOTE_MGR_EVT_LISTEN, NULL);
         } else if (std::strcmp(status, Lang::Strings::STANDBY) == 0) {
-            emote_set_event_msg(emote_handle_, EMOTE_MGR_EVT_IDLE, NULL);
+            SetEventMessage(EMOTE_MGR_EVT_IDLE, NULL);
         } else if (std::strcmp(status, Lang::Strings::SPEAKING) == 0) {
-            emote_set_event_msg(emote_handle_, EMOTE_MGR_EVT_SPEAK, NULL);
+            SetEventMessage(EMOTE_MGR_EVT_SPEAK, NULL);
         } else if (std::strcmp(status, Lang::Strings::ERROR) == 0) {
-            emote_set_event_msg(emote_handle_, EMOTE_MGR_EVT_SET, NULL);
+            SetEventMessage(EMOTE_MGR_EVT_SET, NULL);
         }
     }
     RefreshBatteryOverlay();
@@ -289,7 +350,7 @@ void EmoteDisplay::ShowNotification(const char* notification, int duration_ms) {
     std::lock_guard<std::recursive_mutex> guard(overlay_mutex_);
     ESP_LOGI(TAG, "ShowNotification: %s", notification);
     if (emote_handle_ && notification && strlen(notification) > 0) {
-        emote_set_event_msg(emote_handle_, EMOTE_MGR_EVT_SYS, notification);
+        SetEventMessage(EMOTE_MGR_EVT_SYS, notification);
     }
     RefreshBatteryOverlay();
     RefreshInteractionOverlay();

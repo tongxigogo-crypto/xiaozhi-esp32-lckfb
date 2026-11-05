@@ -1,4 +1,5 @@
 #include "wifi_board.h"
+#include "network_time.h"
 
 #include "display.h"
 #include "application.h"
@@ -123,6 +124,7 @@ void WifiBoard::OnNetworkEvent(NetworkEvent event, const std::string& data) {
             // make sure blufi resources has been released
             Blufi::GetInstance().deinit();
 #endif
+            NetworkTime::StartSync();
             in_config_mode_ = false;
             ESP_LOGI(TAG, "Connected to WiFi: %s", data.c_str());
             break;

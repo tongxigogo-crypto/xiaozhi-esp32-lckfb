@@ -139,7 +139,7 @@ class SettingsOtaRunnerTest(unittest.TestCase):
                               ("static bool IsLocalUrl(", "std::string Ota::GetCheckVersionUrl("))
         kconfig = (ROOT / "main/Kconfig.projbuild").read_text()
         default_url = re.search(r'config OTA_URL\s+string[^\n]*\s+default "([^"]+)"', kconfig).group(1)
-        self.assertEqual(default_url, "http://47.117.142.184:8003/xiaozhi/ota/")
+        self.assertEqual(default_url, "https://47.117.142.184/xiaozhi/ota/")
         with tempfile.TemporaryDirectory(prefix="xiaozhi-settings-") as temp:
             folder = Path(temp)
             (folder / "nvs_flash.h").write_text(NVS_HEADER)

@@ -1,7 +1,8 @@
 #include "ota.h"
-#include "system_info.h"
-#include "settings.h"
 #include "assets/lang_config.h"
+#include "network_time.h"
+#include "settings.h"
+#include "system_info.h"
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
@@ -20,6 +21,7 @@
 #include <algorithm>
 #include <charconv>
 #include <cstring>
+#include <cstdlib>
 #include <expected>
 #include <system_error>
 #include <vector>
@@ -108,6 +110,10 @@ NetworkResult<> Ota::CheckVersion() {
     if (url.length() < 10) {
         ESP_LOGE(TAG, "Check version URL is not properly set");
         return std::unexpected(NetworkError::InvalidArgument());
+    }
+
+    if (!NetworkTime::WaitForTls(url)) {
+        return std::unexpected(NetworkError::Timeout(ESP_ERR_TIMEOUT));
     }
 
     auto http = SetupHttp();
@@ -215,22 +221,22 @@ NetworkResult<> Ota::CheckVersion() {
     if (cJSON_IsObject(server_time)) {
         cJSON *timestamp = cJSON_GetObjectItem(server_time, "timestamp");
         cJSON *timezone_offset = cJSON_GetObjectItem(server_time, "timezone_offset");
-        
-        if (cJSON_IsNumber(timestamp)) {
-            // 设置系统时间
-            struct timeval tv;
-            double ts = timestamp->valuedouble;
-            
-            // 如果有时区偏移，计算本地时间
+
+        struct timeval tv{};
+        if (cJSON_IsNumber(timestamp) && NetworkTime::ServerTimeval(timestamp->valuedouble, tv)) {
+            // Epoch is always UTC. Timezone changes display conversion only.
             if (cJSON_IsNumber(timezone_offset)) {
-                ts += (timezone_offset->valueint * 60 * 1000); // 转换分钟为毫秒
+                auto tz = NetworkTime::PosixTimezone(timezone_offset->valuedouble);
+                if (!tz.empty()) {
+                    setenv("TZ", tz.c_str(), 1);
+                    tzset();
+                }
             }
-            
-            tv.tv_sec = (time_t)(ts / 1000);  // 转换毫秒为秒
-            tv.tv_usec = (suseconds_t)((long long)ts % 1000) * 1000;  // 剩余的毫秒转换为微秒
-            settimeofday(&tv, NULL);
-            has_server_time_ = true;
+            has_server_time_ = settimeofday(&tv, nullptr) == 0;
+        } else {
+            ESP_LOGW(TAG, "Ignoring invalid server UTC timestamp");
         }
+
     } else {
         ESP_LOGW(TAG, "No server_time section found!");
     }

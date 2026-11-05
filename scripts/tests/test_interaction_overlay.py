@@ -23,7 +23,7 @@ class InteractionOverlayTests(unittest.TestCase):
     def test_real_methods_preserve_state_and_font_lifetime(self):
         source = (ROOT / "main/display/emote_display.cc").read_text()
         methods = [
-            "EmoteDisplay::~EmoteDisplay", "void EmoteDisplay::RefreshBatteryOverlay",
+            "EmoteDisplay::~EmoteDisplay", "void EmoteDisplay::SetEventMessage", "void EmoteDisplay::RefreshBatteryOverlay",
             "void EmoteDisplay::RefreshInteractionOverlay", "void EmoteDisplay::SetInteractionMode",
             "void EmoteDisplay::SetStatus", "void EmoteDisplay::LoadAssets",
             "void EmoteDisplay::UnmountAssets", "void EmoteDisplay::SetEmotion",
@@ -55,7 +55,8 @@ namespace Lang { namespace Strings {
 const char* LISTENING="聆听"; const char* STANDBY="待机";
 const char* SPEAKING="说话"; const char* ERROR="错误";
 }}
-enum {EMOTE_MGR_EVT_LISTEN,EMOTE_MGR_EVT_IDLE,EMOTE_MGR_EVT_SPEAK,EMOTE_MGR_EVT_SET};
+const char* EMOTE_MGR_EVT_LISTEN="listen"; const char* EMOTE_MGR_EVT_IDLE="idle";
+const char* EMOTE_MGR_EVT_SPEAK="speak"; const char* EMOTE_MGR_EVT_SET="set"; const char* EMOTE_MGR_EVT_BAT="bat";
 int emote_lock(void*) {assert(!locked);locked=true;return 0;}
 void emote_unlock(void*) {assert(locked);locked=false;}
 gfx_obj_t* emote_get_obj_by_name(void*, const char* name) {
@@ -71,7 +72,7 @@ void gfx_label_set_color(gfx_obj_t*,int){assert(locked);}
 void gfx_label_set_opa(gfx_obj_t*,int){assert(locked);}
 void gfx_obj_set_visible(gfx_obj_t* o,bool b){assert(locked);o->visible=b;}
 void gfx_label_set_font(gfx_obj_t* o,void* f){assert(locked);o->font=f;}
-int emote_set_event_msg(void*,int,const char*){return 0;}
+int emote_set_event_msg(void*,const char*,const char*){return 0;}
 int emote_set_anim_emoji(void*,const char*){return 0;}
 int emote_get_asset_data_by_name(void*,const char* n,const uint8_t** data,size_t* len){
  assert(mounted);assert(!strcmp(n,"font_puhui_common_20_4.bin"));
@@ -98,6 +99,7 @@ public:
  void LoadAssets();
  void UnmountAssets();
 private:
+ void SetEventMessage(const char*, const char*);
  void RefreshBatteryOverlay();
  void RefreshInteractionOverlay();
 """ + fields + "\n};\n" + bodies + r"""

@@ -28,12 +28,16 @@ jobs:
         run: |
           command -v g++ || (apt-get update && apt-get install -y g++)
           g++ --version
+          python -m pip install esp-idf-nvs-partition-gen==0.3.0
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           python -m unittest discover -s scripts/tests -p 'test_touch_gesture_runner.py' -v
           python -m unittest discover -s scripts/tests -p 'test_settings_runner.py' -v
           python -m unittest discover -s scripts/tests -p 'test_camera_tools.py' -v
           python -m unittest discover -s scripts/tests -p 'test_vision_refresh.py' -v
           python -m unittest discover -s scripts/tests -p 'test_interaction_overlay.py' -v
+          python -m unittest discover -s scripts/tests -p 'test_clean_emote_events.py' -v
+          python -m unittest discover -s scripts/tests -p 'test_provision_device_nvs.py' -v
+          python -m unittest discover -s scripts/tests -p 'test_tls_clock.py' -v
           python -m unittest discover -s scripts/tests -p 'test_optimize_eaf.py' -v
           python -m unittest discover -s scripts/tests -p 'test_emote_assets_dependencies.py' -v
           python scripts/verify_eaf_assets.py
@@ -45,6 +49,7 @@ jobs:
           idf.py --version
           python scripts/build.py lckfb/szpi-esp32s3 --name lichuang-dev --wake-word disabled
           grep -n "CONFIG_OTA_URL" sdkconfig
+          grep -n "CONFIG_MBEDTLS_HAVE_TIME_DATE" sdkconfig
 
       - name: Verify build outputs
         shell: bash

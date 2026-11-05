@@ -31,6 +31,7 @@
 #include "display.h"
 #include "mcp_server.h"
 #include "mqtt_protocol.h"
+#include "network_time.h"
 #include "settings.h"
 #include "system_info.h"
 #include "text_glyph_payload.h"
@@ -451,6 +452,12 @@ void Application::CheckAssetsVersion() {
     // Check if there is a new assets need to be downloaded
     std::string download_url = settings.GetString("download_url");
 
+    // Do not consume a pending HTTPS URL before the clock is usable.
+    // This runs in ActivationTask, not the main loop or an audio task.
+    if (!download_url.empty() && !NetworkTime::WaitForTls(download_url)) {
+        ESP_LOGW(TAG, "Deferring assets download until network time is ready");
+        download_url.clear();
+    }
     if (!download_url.empty()) {
         settings.EraseKey("download_url");
 
