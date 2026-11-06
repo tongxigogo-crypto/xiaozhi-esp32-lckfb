@@ -20,10 +20,10 @@
 | OTA 地址 | 固件默认 `https://47.117.142.184/xiaozhi/ota/`（2.5.5 起就是 https） | `main/Kconfig.projbuild` |
 | 待实施 | `.agent/SPEC-pending-changes.md`：S1–S3 已实施并部署（`1214895`/`34f8f97`）；F1–F3 审核结论为现阶段不需要（见该文件第五部分） | — |
 | 已知问题 | 11-06 日志里的三项已修并部署：记忆卡裁剪丢数据（S1–S3）、豆包 TTS 打断后 `StartSession failed`（`1ae1dcc`）、联网搜索 401 占位 Key（`658c737`）——**待真机对话复核**。仍待：人设废话多（待给标准）；2.5.6 真机验收清单见交付档案第七节；2.5.7 待编译烧录 | 服务端日志 11-06 |
-| 证书到期 | VPS 443 为 Let's Encrypt IP 短期证书，**2026-11-12 04:09 UTC 到期**，自动续期未确认；续不上则 https/wss 全断（2.5.6、2.5.7 都受影响）。tong 登 VPS 确认续期 | `openssl s_client` 11-06 23:50 |
+| 证书到期 | VPS 443 = Let's Encrypt IP 短期证书（`preferred_profile=shortlived`，7 天），本次 `notAfter 2026-11-12 04:09 UTC`。**自动续期已核实可用**（11-07 00:45 小马，SSH 查 VPS）：systemd `xiaofeiyu-cert-renew.timer` active+enabled，每 6 小时一次，最近 5 次（11-06 00:01/06:25/12:25/18:04、11-07 00:11）均 Finished；`certbot renew --dry-run` **全部成功**；webroot `/var/lib/xiaofeiyu/acme`，nginx 80 在听。certbot 5.9.0 装在 `/opt/xiaofeiyu/certbot-venv/bin/`，**不在 PATH**（`which certbot` 查不到，容易误判为"没装"）。ARI 下次检查 11-07 05:07 UTC。**唯一残留确认**：11-10 起看一眼 `notBefore` 是否已更新 | `systemctl list-timers`、`certbot certificates`、`renew --dry-run` 11-07 00:45 |
 
 > 任何 Agent 动手前先读这一页，动完立刻改这一页。
-> 最后更新：2026-11-06 23:40（首节）；以下历史各节最后更新 2026-11-05 17:35
+> 最后更新：2026-11-07 00:45（首节：证书自动续期已核实）；以下历史各节最后更新 2026-11-05 17:35
 
 ---
 
