@@ -130,3 +130,10 @@ git rev-parse --short fork/wip/2.5.4-baseline
 - 正式服务95a9fff从git树部署，私密备份保留；除prompt外配置语义未变，匿名WSS1008拒绝，真实HTTP情绪及thinking工具续接通过。密钥/思考原文不入记录。
 - 验收单文件acceptance/index.html直接解码最终资源，提供24表情、爱心/问号/怒气、自动/手动与三状态、暂停/逐帧；仅浏览器预览，不是液晶实拍。操作手册与latest-release.json同目录。
 - 详情docs/review/2.5.6-final-display-review.md及项目evidence。后续文档提交不改变c46a91d构建身份；不另触发CI。本轮未烧录/未合并main/未发布OTA。旧2.5.5/96fada8配对回滚与私密全量快照保留。
+
+
+## 2026-11-06T13:21:39.786866+08:00 DOC256-HASH-20261106 completed / Codex
+
+- 用户指出报告正文漏同步已退回33d7bdf的app哈希。已复算Mac/Windows实际c46a91d：app SHA256 6dc2590c11529a7beea14a1f6bca381d3970208c65bf2d31af4554d31a3fd0f0，assets SHA256 fd7a3d38e7fc4fc26c1d32fbfce646caecb2dd3a6f912989047ec3d1cd283ea1。当前报告正文只使用c46a91d/Actions42139132026；原报告原字节归档到docs/review/archive/2.5.6-gemini-review-33d7bdf-0cc0b62.md，历史审查响应不改。
+- 当前页面仅移除初轮浏览器QA的过期app身份投影；24动画与渲染代码哈希相同。完整旧QA保留，当前manifest/校验文件/报告/页面均一致。Gemini3.8Flash文档限定复核PASS，Codex接受本次文档纠错。证据项目outputs/2.5.6-completion/evidence/doc-identity-correction-256.json与gemini-doc-identity-review-256.json。
+- 项目内追加防重发规则：从实际产物与manifest生成当前校验信息，检查全文和展开证据，不只在末尾补更正。仅文档/输出元数据，不修改app/assets/固件/服务端，不触发CI，不烧录；用户审查与明确烧录确认仍等待。
