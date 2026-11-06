@@ -265,7 +265,7 @@ bool EmoteDisplay::CreateInteractionLabels() {
         int y;
         int width;
     };
-    const LabelLayout layouts[] = {{"mode_label", 4, 60}, {"state_label", 34, 150}};
+    const LabelLayout layouts[] = {{"mode_label", 4, 60}, {"state_label", 34, 72}};
     for (const auto& layout : layouts) {
         auto label = emote_create_obj_by_type(emote_handle_, "label", layout.name);
         if (!label || emote_lock(emote_handle_) != ESP_OK) {

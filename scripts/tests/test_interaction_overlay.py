@@ -197,7 +197,7 @@ int main(){
  assert(!loaded);d.LoadAssets();
  assert(mode.visible && mode.text=="手动");assert_frame();
  assert(mode.x==6 && mode.y==4 && mode.w==60 && mode.h>=27);
- assert(state.x==6 && state.y==34 && state.w==150 && state.h>=27);
+ assert(state.x==6 && state.y==34 && state.w==72 && state.h>=27);
  assert(state.visible && state.text=="聆听中");
  assert(mode.font && state.font==mode.font && font_live==1);
  assert(!battery.visible && battery.text.empty());
@@ -273,6 +273,34 @@ int main(){
             subprocess.run([compiler, "-std=c++17", "-pthread", str(src), "-o", str(binary)], check=True, capture_output=True, text=True)
             result = subprocess.run([str(binary)], capture_output=True, text=True)
             self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_status_plate_fits_packaged_font_and_preserves_art_outside_text(self):
+        import re
+        from eaf_reference import decode
+        source = (ROOT / "main/display/emote_display.cc").read_text()
+        body = method(source, "bool EmoteDisplay::CreateInteractionLabels")
+        match = re.search(r'\{"state_label", (\d+), (\d+)\}', body)
+        y, width = map(int, match.groups())
+        self.assertEqual(y, 34)
+        self.assertEqual(width, 72)
+        # Actual ESP32 font from verified96fada8 pack, unchanged SHA256
+        # 912829ae9d4647346e7402eb76da26023ac6b47b0b277782a6531e466a669c02.
+        # (adv_w, box_w, ofs_x), from cmap-selected 16-byte glyph descriptors.
+        # Pinned gfx_font_lv.c uses max(adv_w >> 4, box_w + ofs_x).
+        glyphs = {"空":(315,18,1), "闲":(315,16,2), "聆":(315,20,0),
+                  "听":(315,17,2), "中":(315,16,2), "说":(315,19,0), "话":(315,19,0)}
+        advances = {ch:max(adv >> 4, box + offset) for ch,(adv,box,offset) in glyphs.items()}
+        self.assertEqual([sum(advances[ch] for ch in text) for text in ["空闲", "聆听中", "说话中"]], [38,58,57])
+        self.assertGreaterEqual(width - 58, 12)
+        # This used-to-be-covered strip contains real approved expression marks.
+        # Every sampled original pixel lies outside the narrowed opaque plate.
+        for name in ["curious", "jealous", "idle"]:
+            path = ROOT / "main/boards/lckfb/szpi-esp32s3/assets/emoji_large" / (name + ".eaf")
+            for frame in decode(path.read_bytes()):
+                protected = [(x, yy) for yy in range(34,62) for x in range(78,156)
+                             if any(frame["palette"][frame["indices"][yy*320+x]*4:frame["indices"][yy*320+x]*4+3])]
+                self.assertTrue(protected, name)
+                self.assertTrue(all(x >= 6 + width for x, yy in protected), name)
 
     def test_layout_and_application_use_real_mode(self):
         layout = json.loads((ROOT / "main/boards/lckfb/szpi-esp32s3/assets/320_240/layout.json").read_text())

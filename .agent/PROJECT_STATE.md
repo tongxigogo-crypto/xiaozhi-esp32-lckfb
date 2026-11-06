@@ -147,3 +147,8 @@
 - 单文件验收页outputs/2.5.6-completion/acceptance/index.html与人类操作手册xiaofeiyu_2.5.6_acceptance.md已备；网页不是液晶实拍/声音验收。
 - 本轮未烧录、未发布OTA、未合并main。旧96fada8配对app/assets及全量私密备份保留；等用户明确确认再写设备。板上最新已核实仍2.5.5。此条优先于本文件早期2.5.4/未加固/未轮换等历史状态。
 - Actor Codex，证据docs/review/2.5.6-gemini-review.md、项目outputs/2.5.6-completion/evidence。历史提交33d7bdf/95a9fff由Codex集成；后续提交带agent标识，不改写已构建提交。
+
+
+## 2026-11-06T00:40:33.216590+00:00 2.5.6验收页发现遮挡，暂停33d7bdf候选
+
+- 原状态标签黑底宽150遮住问号/爱心部分像素；root实际解码像素证据outputs/2.5.6-completion/evidence/overlay-occlusion-red.json。T1重新running，缩窄到三个字形可容纳范围后复审重编；旧33d7bdf不烧录，保留审计。先前“软件准备完成”被本条取代，等待新候选。ActorCodex。
