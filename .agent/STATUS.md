@@ -232,3 +232,19 @@ Gemini审查PASS的功能提交为3672528：T1–T5公网OTA、T7相机注册、
 - 单文件验收页outputs/2.5.6-completion/acceptance/index.html与人类操作手册xiaofeiyu_2.5.6_acceptance.md已备；网页不是液晶实拍/声音验收。
 - 本轮未烧录、未发布OTA、未合并main。旧96fada8配对app/assets及全量私密备份保留；等用户明确确认再写设备。板上最新已核实仍2.5.5。此条优先于本文件早期2.5.4/未加固/未轮换等历史状态。
 - Actor Codex，证据docs/review/2.5.6-gemini-review.md、项目outputs/2.5.6-completion/evidence。历史提交33d7bdf/95a9fff由Codex集成；后续提交带agent标识，不改写已构建提交。
+
+
+## 2026-11-06T08:46:48.721424+08:00 2.5.6候选修正正在重编
+
+- 验收页发现150px状态黑底遮住部分爱心/问号；已缩窄72px，实际文字宽38/58/57px。Gemini显示复审PASS，独立QA3/3通过，源像素保持。修正提交c46a91d，Actions42139132026进行中。此前33d7bdf四文件仅保留审计，已标记superseded/do_not_flash；此前“准备完成”的该候选结论不再适用。仍未烧录，等新产物完整验证。ActorCodex。
+
+
+## 2026-11-06T08:55:34.316435+08:00 2.5.6最终软件准备接受：c46a91d（尚未烧录）
+
+- ActorCodex；接受软件范围T1/T2与页面交付，实体写入/真机验收门禁保持等待用户。c46a91d修复状态黑底遮挡，取代旧33d7bdf；Actions42139132026 SUCCESS。
+- 固件153项/148PASS/5预期上游workflow缺失skip，独立宽度3PASS；服务端78PASS、人设14、情绪65；Gemini显示复审/资源/服务端/HTML PASS；独立页面37PASS。
+- 状态字形宽38/58/57px，72px黑底+28px高度，保护头顶爱心/问号；图像未重绘。24EAF/168帧/39注册5FPS200ms，10字形齐全，当前板无真实电量继续隐藏。
+- 四文件已下载Mac/Windows项目outputs/2.5.6-completion/artifact-c46a91d，app2685056 B / SHA256 6dc2590c11529a7beea14a1f6bca381d3970208c65bf2d31af4554d31a3fd0f0；assets6192626 B / SHA256 fd7a3d38e7fc4fc26c1d32fbfce646caecb2dd3a6f912989047ec3d1cd283ea1，≤8MiB，flashargs版本2.5.6提交c46a91d。
+- 正式服务95a9fff从git树部署，私密备份保留；除prompt外配置语义未变，匿名WSS1008拒绝，真实HTTP情绪及thinking工具续接通过。密钥/思考原文不入记录。
+- 验收单文件acceptance/index.html直接解码最终资源，提供24表情、爱心/问号/怒气、自动/手动与三状态、暂停/逐帧；仅浏览器预览，不是液晶实拍。操作手册与latest-release.json同目录。
+- 详情docs/review/2.5.6-final-display-review.md及项目evidence。后续文档提交不改变c46a91d构建身份；不另触发CI。本轮未烧录/未合并main/未发布OTA。旧2.5.5/96fada8配对回滚与私密全量快照保留。
