@@ -1,6 +1,6 @@
 # 项目状态（唯一事实源）
 
-## 最新生效状态（2026-11-06 23:40，Claude 按 git / 产物清单 / 服务进程核实）
+## 最新生效状态（2026-11-07 01:05，小马按 git / Actions / 串口日志 / 服务进程核实）
 
 > 本节优先于本文件下方所有内容，也优先于其他状态页。下方旧内容只作历史，冲突时以本节为准。
 > 其他状态页（`SYNC.md`、`STATUS.md`、Obsidian `50-小肥鱼/01-项目进度.md`、`00-目录清单.md`）只放指针，不另写一份。
@@ -8,22 +8,22 @@
 
 | 项 | 当前值 | 依据 |
 | :--- | :--- | :--- |
-| 板上固件 | **2.5.6**，`c46a91d`（Actions 42139132026）；2026-11-06 13:30 小马烧录，板上读回确认 | Obsidian `50-小肥鱼/03-2.5.6-交付档案.md` |
-| 固件现役分支 | `codex/2.5.6-completion` = `47acde1`（`c46a91d` + 文档），本地与 fork 一致 | `git rev-parse` |
-| 下一版（未编译） | **2.5.7 HTTPS**：`codex/2.5.7-https`，功能提交 `0420a19`（`PROJECT_VER 2.5.7`），已审查；分支 HEAD `1232ac5` 只多三份规格文档 | `git show 0420a19:CMakeLists.txt`；`50-小肥鱼/04-2.5.7-待烧记录.md`。**推送、编译、烧录由 tong 自己做**（11-06 定）；编译走 Actions 手动选 `codex/2.5.7-https`，不合 main |
-| 产物 | 2.5.6 只用 `outputs/2.5.6-completion/artifact-c46a91d`，身份以同目录 `latest-release.json` 为准。已退回的 `artifact-33d7bdf`、实为 2.5.5 的 `build_artifacts/2.5.6-reboot`、`30-硬件资料/firmware_bin` 里的旧 bin 均已移到项目根 `.archive-20261106/`，**勿用** | `latest-release.json` |
-| 回滚 | 2.5.5 / `96fada8` 成套 app + assets，私密全量备份只作应急 | 2.5.6 验收报告 |
+| 板上固件 | **2.5.7**，构建提交 `9c2c99d`（Actions `42255436477`）；2026-11-07 00:57 小马烧录，冷启动读回 `Current version: 2.5.7` 并进入 `listening` | `outputs/2.5.7-https/boot-log-2.5.7.log` |
+| 固件现役分支 | `codex/2.5.7-https` = `9c2c99d`，本地与 fork 一致 | `git rev-parse`、`git push` |
+| 上一版（回滚用） | 2.5.6 `c46a91d`（Actions `42139132026`），产物在 `outputs/2.5.6-completion/artifact-c46a91d`；档案 Obsidian `50-小肥鱼/03-2.5.6-交付档案.md` | `latest-release.json` |
+| 产物 | 2.5.7 用 `outputs/2.5.7-https/artifact-9c2c99d/xiaozhi-lckfb-lichuang-dev/`：app `815be949…`、assets `fd7a3d38…`（与 2.5.6 同一份）。旧混版产物仍在 `.archive-20261106/`，**勿用** | `sha256sums.txt` |
+| 回滚 | 2.5.6 `c46a91d` 成套 app + assets（`outputs/2.5.6-completion/artifact-c46a91d`）；2.5.5 / `96fada8` 的 16MiB 整片私密备份只作应急 | 2.5.6 验收报告 |
 | 服务端运行 | `~/Services/xiaofeiyu/current` → `releases/server-d9105f3`（11-06 23:33 起），LaunchAgent `com.xiaofeiyu.server`；frpc 常驻（`com.xiaofeiyu.frpc`）。回滚：`current` 指回 `releases/server-658c737`（记忆仍读新目录前需先设 `XFY_MEMORY_DIR`，否则旧版会写回知识库）后 `launchctl kickstart -k gui/$(id -u)/com.xiaofeiyu.server`。**注意**：各版本共用的 `.venv` 实体在 `releases/server-fbf654b/` 里，该目录不能删 | `readlink`、`launchctl list` |
 | 服务端源码 | `runtime/xiaozhi-esp32-server`，分支 `codex/2.5.6-emotion`，HEAD = 部署 `d9105f3`。`origin` 是官方上游，推送地址已设为 `DISABLED`（只拉不推） | `git log` |
 | 运行时记忆 | 独立 Obsidian 仓库 `~/CodexWorkspace/ObsidianVaults/小肥鱼记忆库`（`~/Services/xiaofeiyu/state/memory` 是指向它的链接）（记忆卡、`02-事件/`、`99-归档/`、提炼状态），11-06 从知识库 `50-小肥鱼/` 迁出；`XFY_MEMORY_DIR` 可覆盖；事件流留 3 个月明文，更早压缩到 `99-归档/事件/`。知识库 `50-小肥鱼/` 只放项目文档 | `memory_obsidian.py` |
 | 发布构建 | 一律用 `~/Services/xiaofeiyu/tools/build_release.sh <提交>`（自带自检）。11-06 23:33 手工构建把 `models` 链成了 `models/models`，声纹和 ASR 模型找不到，板子只显示聆听不答复，23:37 已修 | — |
 | OTA 地址 | 固件默认 `https://47.117.142.184/xiaozhi/ota/`（2.5.5 起就是 https） | `main/Kconfig.projbuild` |
 | 待实施 | `.agent/SPEC-pending-changes.md`：S1–S3 已实施并部署（`1214895`/`34f8f97`）；F1–F3 审核结论为现阶段不需要（见该文件第五部分） | — |
-| 已知问题 | 11-06 日志里的三项已修并部署：记忆卡裁剪丢数据（S1–S3）、豆包 TTS 打断后 `StartSession failed`（`1ae1dcc`）、联网搜索 401 占位 Key（`658c737`）——**待真机对话复核**。仍待：人设废话多（待给标准）；2.5.6 真机验收清单见交付档案第七节；2.5.7 待编译烧录 | 服务端日志 11-06 |
+| 已知问题 | 11-06 日志里的三项已修并部署：记忆卡裁剪丢数据（S1–S3）、豆包 TTS 打断后 `StartSession failed`（`1ae1dcc`）、联网搜索 401 占位 Key（`658c737`）——**待真机对话复核**。仍待：人设废话多（待给标准）；2.5.6 的 9 项真机验收清单见交付档案第七节（2.5.7 已烧，验收对象改为 2.5.7）；服务端一次性告警 `Server sample rate 16000 does not match device output 24000`（重采样，非本版引入） | 服务端日志 11-06 / 11-07 冷启动 |
 | 证书到期 | VPS 443 = Let's Encrypt IP 短期证书（`preferred_profile=shortlived`，7 天），本次 `notAfter 2026-11-12 04:09 UTC`。**自动续期已核实可用**（11-07 00:45 小马，SSH 查 VPS）：systemd `xiaofeiyu-cert-renew.timer` active+enabled，每 6 小时一次，最近 5 次（11-06 00:01/06:25/12:25/18:04、11-07 00:11）均 Finished；`certbot renew --dry-run` **全部成功**；webroot `/var/lib/xiaofeiyu/acme`，nginx 80 在听。certbot 5.9.0 装在 `/opt/xiaofeiyu/certbot-venv/bin/`，**不在 PATH**（`which certbot` 查不到，容易误判为"没装"）。ARI 下次检查 11-07 05:07 UTC。**唯一残留确认**：11-10 起看一眼 `notBefore` 是否已更新 | `systemctl list-timers`、`certbot certificates`、`renew --dry-run` 11-07 00:45 |
 
 > 任何 Agent 动手前先读这一页，动完立刻改这一页。
-> 最后更新：2026-11-07 00:45（首节：证书自动续期已核实）；以下历史各节最后更新 2026-11-05 17:35
+> 最后更新：2026-11-07 01:05（首节：2.5.7 已编译烧录、冷启动通过；证书续期已核实）；以下历史各节最后更新 2026-11-05 17:35
 
 ---
 
