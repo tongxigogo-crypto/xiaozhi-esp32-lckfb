@@ -93,7 +93,7 @@ int main(){
  assert(lookups.empty()); assert(animations.back()=="listening");
  d.SetEmotion("neutral");assert(animations.back()=="listening");
  d.SetEmotion("happy");assert(animations.back()=="happy");
- d.SetStatus(Lang::Strings::SPEAKING);assert(animations.back()=="speaking");
+ d.SetStatus(Lang::Strings::SPEAKING);assert(animations.back()=="happy");
  d.SetChatMessage("assistant","你好");
  d.SetChatMessage("system","xiaozhi.me\nhello");
  d.ShowNotification("网络错误");

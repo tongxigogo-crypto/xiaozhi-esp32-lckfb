@@ -1,0 +1,8 @@
+{
+  "source": "https://components.espressif.com/api/downloads/?object_type=component&object_id=0de1083b-00a3-4e2e-9e9d-f279cbe3dd1d",
+  "component": "esp_emote_gfx 3.0.5",
+  "file": "src/core/display/gfx_render.c",
+  "sha256": "fd14d9b57ea375cdbcb7863759a9eef2eb6d37b3b5e3bfc48c0d684940325f8b",
+  "source_file_sha256": "091b2fc78ba11dd0c37e215c01f4f7b478a1f6637cc202594999c553262d8444",
+  "extraction": "Unmodified gfx_render_draw_child_objects function plus original SPDX header; compiled against host draw/object fixture"
+}

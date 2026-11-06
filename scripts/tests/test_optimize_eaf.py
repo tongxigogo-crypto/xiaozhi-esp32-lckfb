@@ -60,6 +60,36 @@ class OptimizerTests(unittest.TestCase):
         with self.assertRaises((ValueError, AssertionError)):
             self.optimize(source)
 
+    def test_manifest_covers_all_24_current_sources(self):
+        import json
+        import verify_eaf_assets as verifier
+        manifest = json.loads((ROOT / verifier.MANIFEST).read_text())
+        self.assertEqual(len(manifest["assets"]), 24)
+        self.assertEqual({a["file"] for a in manifest["assets"]},
+                         {p.name for p in (ROOT / verifier.ASSETS / "emoji_large").glob("*.eaf")})
+
+    def test_changed_or_new_asset_never_bypasses_hash_and_official_decoder(self):
+        from unittest.mock import patch
+        import verify_eaf_assets as verifier
+        read_bytes = Path.read_bytes
+        for name in ("annoyed.eaf", "listening.eaf", "roast.eaf", "sulk.eaf"):
+            def tamper(path):
+                data = read_bytes(path)
+                # Container stays decodable: mutate one unused palette alpha byte
+                # and repair its checksum. Previously Python-only fallback passed.
+                if path == ROOT / verifier.ASSETS / "emoji_large" / name:
+                    data = bytearray(data)
+                    count = struct.unpack_from("<I", data, 4)[0]
+                    frame = 16 + count * 8
+                    blocks = struct.unpack_from("<H", data, frame + 16)[0]
+                    data[frame + 20 + blocks * 4 + 1023] ^= 1
+                    struct.pack_into("<I", data, 8, sum(data[16:]) & 0xffffffff)
+                    return bytes(data)
+                return data
+            with self.subTest(name=name), patch.object(Path, "read_bytes", tamper):
+                with self.assertRaises(AssertionError):
+                    verifier.verify(ROOT)
+
     def test_current_assets_preserve_manifest_frame_hashes(self):
         import verify_eaf_assets
         result = verify_eaf_assets.verify(ROOT)

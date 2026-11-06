@@ -1,6 +1,6 @@
 {
-  "schema_version": 1,
-  "source_revision": "94ce20a95ae7b29bd3387bdae913dd6a8a27aa03",
+  "schema_version": 2,
+  "source_revision": "8ccb432a42eb400bea880e21adc73d883f8a6c44",
   "optimizer": "scripts/optimize_eaf.py",
   "verification": "scripts/verify_eaf_assets.py",
   "official_decoder_version": "esp_emote_gfx 3.0.5",
@@ -10,13 +10,9 @@
     "all pixel indices preserved",
     "frame order/count preserved",
     "320x240",
-    "fps12 and loop unchanged"
+    "fps5 and loop unchanged"
   ],
-  "aliases": {
-    "listening.eaf": "idle.eaf",
-    "sulk.eaf": "pout.eaf",
-    "roast.eaf": "smirk.eaf"
-  },
+  "aliases": {},
   "assets": [
     {
       "original_file": "annoyed.eaf",
@@ -419,7 +415,7 @@
     },
     {
       "original_file": "listening.eaf",
-      "file": "idle.eaf",
+      "file": "listening.eaf",
       "original_sha256": "3473714b03ff7783a7b6f39c493ac1b2701efb8e69e4efbd0fe7a1d23971d744",
       "sha256": "982ba3101b4fc2594bae8a304fe73e97bb21e372e9a99a67035bb58a44b13dcd",
       "original_bytes": 124682,
@@ -603,7 +599,7 @@
     },
     {
       "original_file": "roast.eaf",
-      "file": "smirk.eaf",
+      "file": "roast.eaf",
       "original_sha256": "3ae98de8fb991cab38931ee9cc5d2959b8546596b017eecc369884efe854ef93",
       "sha256": "51618802fd2cd1dd5df66c9c0e9e1e510a3c6963deae66cf995130e9dbee1da1",
       "original_bytes": 243400,
@@ -889,7 +885,7 @@
     },
     {
       "original_file": "sulk.eaf",
-      "file": "pout.eaf",
+      "file": "sulk.eaf",
       "original_sha256": "9815d8af9fc8255c69f5a08be6276bf9a2de4f3a3f0e16f72a42d4c55672bc90",
       "sha256": "ad3cddc59b3cdd3d4b886ffabf446ce9d3a874dab128b4286c6b0fa63fa9289a",
       "original_bytes": 244958,
@@ -1122,18 +1118,5 @@
         }
       ]
     }
-  ],
-  "unused_sources": "Retained in Git and private original backup. Physical unused originals are excluded by manifest-based packer; no packed savings claimed for laugh_sym.eaf or duplicate pufferfish directory.",
-  "hardware_gaps": [
-    "12fps device playback and heap not measured; Huffman type1 uses an extra 10240-byte temporary buffer plus tree per block"
-  ],
-  "totals": {
-    "registrations": 39,
-    "registered_original_files": 24,
-    "registered_original_frames": 168,
-    "registered_original_bytes": 5343802,
-    "compressed_without_alias_bytes": 4652058,
-    "packed_unique_files": 21,
-    "packed_unique_bytes": 4113785
-  }
+  ]
 }

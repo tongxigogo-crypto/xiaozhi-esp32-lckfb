@@ -61,7 +61,7 @@ jobs:
           test -s build/xiaozhi.bin
           test -s build/expression_assets.bin
           test "$(stat -c%s build/expression_assets.bin)" -le 8388608
-          python scripts/verify_emote_pack.py build/expression_assets.bin
+          python scripts/verify_emote_pack.py build/expression_assets.bin --board-assets
           sha256sum build/xiaozhi.bin build/expression_assets.bin > build/sha256sums.txt
           VER=$(grep -oE 'PROJECT_VER "[0-9.]+"' CMakeLists.txt | grep -oE '[0-9.]+')
           COMMIT=$(git -c safe.directory="$GITHUB_WORKSPACE" rev-parse --short HEAD)

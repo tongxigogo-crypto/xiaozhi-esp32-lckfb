@@ -165,7 +165,11 @@ void EmoteDisplay::SetEmotion(const char* const emotion) {
                 }
             }
         }
-        emote_set_anim_emoji(emote_handle_, animation);
+        if (emote_set_anim_emoji(emote_handle_, animation) == ESP_OK) {
+            explicit_emotion_ =
+                std::strcmp(emotion, "neutral") != 0 && std::strcmp(emotion, "idle") != 0 &&
+                std::strcmp(emotion, "listening") != 0 && std::strcmp(emotion, "speaking") != 0;
+        }
         RefreshBatteryOverlay();
         RefreshInteractionOverlay();
     }
@@ -203,7 +207,9 @@ void EmoteDisplay::SetEventMessage(const char* event, const char* message) {
     emote_unlock(emote_handle_);
 
     // Text/notifications must not replace an explicit emotion from touch or AI.
-    if (!message) {
+    // Emotion metadata may arrive before the audio START state change. Keep
+    // that expression while the independent label truthfully reports speaking.
+    if (!message && !explicit_emotion_) {
         if (std::strcmp(event, EMOTE_MGR_EVT_LISTEN) == 0) {
             emote_set_anim_emoji(emote_handle_, "listening");
         } else if (std::strcmp(event, EMOTE_MGR_EVT_IDLE) == 0) {
@@ -229,10 +235,8 @@ void EmoteDisplay::RefreshBatteryOverlay() {
     }
 
     if (!battery_valid_) {
-        gfx_label_set_text(label, "USB");
-        gfx_label_set_color(label, GFX_COLOR_HEX(0x22C55E));
-        gfx_label_set_opa(label, 240);
-        gfx_obj_set_visible(label, true);
+        gfx_label_set_text(label, "");
+        gfx_obj_set_visible(label, false);
         emote_unlock(emote_handle_);
         return;
     }
@@ -261,14 +265,16 @@ bool EmoteDisplay::CreateInteractionLabels() {
         int y;
         int width;
     };
-    const LabelLayout layouts[] = {{"mode_label", 4, 60}, {"state_label", 28, 150}};
+    const LabelLayout layouts[] = {{"mode_label", 4, 60}, {"state_label", 34, 150}};
     for (const auto& layout : layouts) {
         auto label = emote_create_obj_by_type(emote_handle_, "label", layout.name);
         if (!label || emote_lock(emote_handle_) != ESP_OK) {
             return false;
         }
         gfx_obj_align(label, GFX_ALIGN_TOP_LEFT, 6, layout.y);
-        gfx_obj_set_size(label, layout.width, 24);
+        // The packaged 20px font has line_height=25. A 24px label fails
+        // gfx's line-height check before it paints the first glyph.
+        gfx_obj_set_size(label, layout.width, 28);
         gfx_label_set_text_align(label, GFX_TEXT_ALIGN_LEFT);
         gfx_label_set_long_mode(label, GFX_LABEL_LONG_CLIP);
         gfx_obj_set_visible(label, false);
@@ -292,14 +298,23 @@ void EmoteDisplay::RefreshInteractionOverlay() {
             gfx_label_set_font(label, interaction_font_);
         }
         gfx_label_set_text(label, visible ? text : "");
-        gfx_label_set_color(label, GFX_COLOR_HEX(0x38BDF8));
-        gfx_label_set_opa(label, 240);
+        // Opaque white on black remains readable on every expression frame.
+        // Custom labels are appended after both animations, so dirty animation
+        // areas repaint these labels last even when their text is unchanged.
+        gfx_label_set_color(label, GFX_COLOR_HEX(0xFFFFFF));
+        gfx_label_set_bg_color(label, GFX_COLOR_HEX(0x000000));
+        gfx_label_set_opa(label, 255);
+        gfx_label_set_bg_enable(label, true);
         gfx_obj_set_visible(label, visible);
     };
     update_label("mode_label", automatic_mode_ ? "自动" : "手动");
     const char* state_text = interaction_status_.c_str();
     if (interaction_status_ == Lang::Strings::STANDBY || interaction_status_ == "待命" || interaction_status_ == "待机") {
         state_text = "空闲";
+    } else if (interaction_status_ == Lang::Strings::LISTENING) {
+        state_text = "聆听中";
+    } else if (interaction_status_ == Lang::Strings::SPEAKING) {
+        state_text = "说话中";
     }
     update_label("state_label", state_text);
     emote_unlock(emote_handle_);
@@ -360,7 +375,13 @@ void EmoteDisplay::SetChatMessage(const char* const role, const char* const cont
 
 void EmoteDisplay::SetStatus(const char* const status) {
     std::lock_guard<std::recursive_mutex> guard(overlay_mutex_);
+    const bool status_changed = interaction_status_ != (status ? status : "");
     interaction_status_ = status ? status : "";
+    if (status_changed && (interaction_status_ == Lang::Strings::LISTENING ||
+                           interaction_status_ == Lang::Strings::STANDBY)) {
+        // A new listening/idle turn must not inherit the preceding reply's mood.
+        explicit_emotion_ = false;
+    }
     ESP_LOGI(TAG, "SetStatus: %s", status ? status : "");
     if (emote_handle_ && status && strlen(status) > 0) {
         if (std::strcmp(status, Lang::Strings::LISTENING) == 0) {
@@ -482,6 +503,7 @@ void EmoteDisplay::LoadAssets() {
         return;
     }
     assets_loaded_ = false;
+    explicit_emotion_ = false;
     if (interaction_font_) {
         gfx_font_lv_delete(interaction_font_);
         interaction_font_ = nullptr;

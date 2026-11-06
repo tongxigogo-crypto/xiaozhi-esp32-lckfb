@@ -108,11 +108,13 @@ def verify(root=ROOT):
     old_config = json.loads(original(root, revision, ASSETS / "320_240/emote.json"))
     assert len(config) == 39 and len({e["emote"] for e in config}) == 39
     mapping = {e["emote"]: e for e in config}
-    current_fps = config[0].get("fps", 12)
+    assert {a["file"] for a in manifest["assets"]} == {e["src"] for e in config}
+    assert len(manifest["assets"]) == 24 and len({a["file"] for a in manifest["assets"]}) == 24
+    assert {e["src"] for e in config} == {p.name for p in (root / ASSETS / "emoji_large").glob("*.eaf")}
     for old in old_config:
         new = mapping[old["emote"]]
-        assert new["fps"] == current_fps and new["loop"] == old["loop"]
-        assert new["src"] in (old["src"], manifest["aliases"].get(old["src"], old["src"]))
+        assert new["fps"] == 5 and new["loop"] == old["loop"]
+        assert new["src"] == old["src"]
     frames, old_bytes, new_bytes = 0, 0, {}
     with tempfile.TemporaryDirectory(prefix="eaf-verify-") as tmp:
         directory = Path(tmp)
@@ -120,29 +122,16 @@ def verify(root=ROOT):
         for asset in manifest["assets"]:
             before = original(root, revision, ASSETS / "emoji_large" / asset["original_file"])
             after = (root / ASSETS / "emoji_large" / asset["file"]).read_bytes()
-            if sha(after) == asset["sha256"]:
-                assert sha(before) == asset["original_sha256"] and len(before) == asset["original_bytes"]
-                assert evidence(binary, before, after, directory) == asset["frames"]
-                assert len(asset["frames"]) == asset["frame_count"]
-                frames += asset["frame_count"]
-            else:
-                parsed_frames = decode(after)
-                assert len(parsed_frames) > 0
-                for fr in parsed_frames:
-                    assert fr["dimensions"] == (320, 240)
-                frames += len(parsed_frames)
+            assert sha(after) == asset["sha256"], "packed asset hash mismatch: " + asset["file"]
+            assert len(after) == asset["bytes"]
+            assert sha(before) == asset["original_sha256"] and len(before) == asset["original_bytes"]
+            # Every source, including new listening/roast/sulk, is decoded by
+            # BOTH pinned official C and Python readers. No changed-file fallback.
+            assert evidence(binary, before, after, directory) == asset["frames"]
+            assert len(asset["frames"]) == asset["frame_count"]
+            frames += asset["frame_count"]
             old_bytes += len(before)
             new_bytes[asset["file"]] = len(after)
-        for src in {e["src"] for e in config} - set(new_bytes):
-            extra_path = root / ASSETS / "emoji_large" / src
-            if extra_path.exists():
-                extra_bytes = extra_path.read_bytes()
-                parsed_frames = decode(extra_bytes)
-                assert len(parsed_frames) > 0
-                for fr in parsed_frames:
-                    assert fr["dimensions"] == (320, 240)
-                frames += len(parsed_frames)
-                new_bytes[src] = len(extra_bytes)
     assert set(new_bytes) == {e["src"] for e in config}
     return {"registrations": len(config), "original_frames": frames, "original_bytes": old_bytes,
             "packed_unique_files": len(new_bytes), "packed_unique_bytes": sum(new_bytes.values()),

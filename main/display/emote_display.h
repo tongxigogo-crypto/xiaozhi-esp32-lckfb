@@ -61,6 +61,9 @@ private:
     lv_font_t* interaction_font_ = nullptr;
     bool assets_loaded_ = false;
     bool automatic_mode_ = true;
+    // Successful explicit base expression for this interaction turn. Dialog
+    // animations have their own lifetime and do not participate in this latch.
+    bool explicit_emotion_ = false;
     std::string interaction_status_;
     int battery_level_ = -1;
     bool battery_charging_ = false;

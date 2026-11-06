@@ -31,3 +31,20 @@ class EmotePackTests(unittest.TestCase):
 
     def test_board_producer_and_reader_filename_width_covers_font(self):
         self.assertGreaterEqual(pack.board_name_length(),len(pack.FONT.encode())+1)
+
+class FontCoverageTests(unittest.TestCase):
+    def test_actual_esp32_font_layout_and_missing_glyph(self):
+        chars = sorted(set(map(ord, "自动手空闲聆听说话中")))
+        data = bytearray(36 + 24 + 20 + 2 * len(chars))
+        struct.pack_into("<H", data, 12, 25)
+        struct.pack_into("<I", data, 24, 36)
+        struct.pack_into("<I", data, 36 + 8, 24)
+        struct.pack_into("<I", data, 36 + 16, 1 << 16)
+        struct.pack_into("<IHHIIHBB", data, 60, 0, 65535, 1, 20, 0, len(chars), 3, 0)
+        struct.pack_into("<" + "H" * len(chars), data, 80, *chars)
+        self.assertEqual(pack.font_coverage(data)["line_height"], 25)
+        self.assertEqual(pack.font_coverage(data)["minimum_label_height"], 25)
+        self.assertEqual(pack.font_coverage(data)["recommended_label_height"], 27)
+        struct.pack_into("<H", data, 80, 0)
+        with self.assertRaisesRegex(ValueError, "missing.*glyph"):
+            pack.font_coverage(data)
