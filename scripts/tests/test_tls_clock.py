@@ -37,6 +37,8 @@ int main(){
  def test_guards_cover_assets_and_ota(self):
   ota=(ROOT/"main/ota.cc").read_text()
   self.assertLess(ota.index("NetworkTime::WaitForTls"),ota.index('http->Open(method, url)'))
+  self.assertLess(ota.index("NetworkTime::WaitForTls"),ota.index("OTA request starting after TLS clock gate"))
+  self.assertLess(ota.index("OTA request starting after TLS clock gate"),ota.index('http->Open(method, url)'))
   self.assertNotIn('ts += (timezone_offset',ota)
   upgrade=ota[ota.index("bool Ota::Upgrade("):ota.index("std::string Ota::GetActivationPayload")]
   activate=ota[ota.index("esp_err_t Ota::Activate()"):]
@@ -63,7 +65,7 @@ extern int init_calls, start_calls;
 inline int esp_netif_sntp_init(const esp_sntp_config_t* c){++init_calls;return init_calls==1?-1:(c->num_of_servers==2?0:-2);}
 inline int esp_netif_sntp_start(){++start_calls;return 0;}
 """)
-   (folder/"esp_log.h").write_text("#define ESP_LOGE(...) ((void)0)\n#define ESP_LOGW(...) ((void)0)\n")
+   (folder/"esp_log.h").write_text("#include <cstdio>\n#define ESP_LOGE(...) ((void)0)\n#define ESP_LOGW(...) ((void)0)\n#define ESP_LOGI(tag, ...) do {std::printf(\"%s: \",tag);std::printf(__VA_ARGS__);std::puts(\"\");} while(0)\n")
    (folder/"freertos/FreeRTOS.h").write_text("#define pdMS_TO_TICKS(ms) (ms)\n")
    (folder/"freertos/task.h").write_text("extern unsigned slept, sync_after;\nextern long fake_now;\ninline void vTaskDelay(unsigned ms){slept+=ms;if(sync_after && slept>=sync_after)fake_now=1790000000;}\n")
    source=folder/"runtime.cc";source.write_text(r"""

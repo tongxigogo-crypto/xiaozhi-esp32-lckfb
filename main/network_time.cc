@@ -26,8 +26,11 @@ void StartSync() {
 #endif
     const auto result = esp_netif_sntp_init(&config);
     initialized = result == ESP_OK;
-    if (!initialized)
+    if (!initialized) {
         ESP_LOGE("NetworkTime", "SNTP initialization failed: %d", result);
+    } else {
+        ESP_LOGI("NetworkTime", "SNTP synchronization initialized");
+    }
 #endif
 }
 bool WaitForTls(const std::string& url, unsigned timeout_ms) {
@@ -35,11 +38,16 @@ bool WaitForTls(const std::string& url, unsigned timeout_ms) {
     if (!NeedsClock(url, true))
         return true;
     // Activation/upgrade task only. Audio and the application loop keep running.
+    ESP_LOGI("NetworkTime", "TLS clock gate waiting for valid network time");
     const bool ready = WaitUntilReady(
         timeout_ms, [] { return std::time(nullptr); },
         [](unsigned ms) { vTaskDelay(pdMS_TO_TICKS(ms)); });
-    if (!ready)
+    if (!ready) {
         ESP_LOGW("NetworkTime", "TLS deferred: network time not ready");
+    } else {
+        ESP_LOGI("NetworkTime", "TLS clock ready: epoch=%lld",
+                 static_cast<long long>(std::time(nullptr)));
+    }
     return ready;
 #else
     (void)url;

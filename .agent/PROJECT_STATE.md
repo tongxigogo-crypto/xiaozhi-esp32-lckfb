@@ -175,3 +175,15 @@
 - 用户指出报告正文漏同步已退回33d7bdf的app哈希。已复算Mac/Windows实际c46a91d：app SHA256 6dc2590c11529a7beea14a1f6bca381d3970208c65bf2d31af4554d31a3fd0f0，assets SHA256 fd7a3d38e7fc4fc26c1d32fbfce646caecb2dd3a6f912989047ec3d1cd283ea1。当前报告正文只使用c46a91d/Actions42139132026；原报告原字节归档到docs/review/archive/2.5.6-gemini-review-33d7bdf-0cc0b62.md，历史审查响应不改。
 - 当前页面仅移除初轮浏览器QA的过期app身份投影；24动画与渲染代码哈希相同。完整旧QA保留，当前manifest/校验文件/报告/页面均一致。Gemini3.8Flash文档限定复核PASS，Codex接受本次文档纠错。证据项目outputs/2.5.6-completion/evidence/doc-identity-correction-256.json与gemini-doc-identity-review-256.json。
 - 项目内追加防重发规则：从实际产物与manifest生成当前校验信息，检查全文和展开证据，不只在末尾补更正。仅文档/输出元数据，不修改app/assets/固件/服务端，不触发CI，不烧录；用户审查与明确烧录确认仍等待。
+
+
+## 2026-11-06T14:48:06.941413+08:00 HTTPS257-R1R4 running / Codex
+
+- 用户派工单R1–R4限定实施，基线47acde1，分支codex/2.5.7-https。R1当前Kconfig5已为HTTPS，保留正确值；R2明确bundle与IP SAN链、显式板级安全配置；R3升2.5.7；R4检查时钟路径并加可观测日志。仅交分支等待小马审查，不触发CI/编译/烧录，不改服务端、表情和许可证锚点。
+
+
+## 2026-11-06T14:55:03.264624+08:00 HTTPS257-R1R4 ready_for_review / Codex
+
+- 基线47acde1，分支codex/2.5.7-https。R1 HTTPS默认地址原已正确保留；R2查明78/esp-ml3073.7.6实际EspSsl::Connect挂esp_crt_bundle_attach，ESP-IDF6.1原生IP SAN校验开启，显式板级bundle/full与禁止skip验证；正常同IP/受信CA链续期无需重编。R3版本2.5.7。R4增加SNTP初始化、TLS时钟就绪、OTA开始日志并验证先后。
+- 本地主机153run/148pass/5预期skip exit0，最新针对TLS测试4pass exit0，格式检查通过。真实2.5.7冷启动串口时间线、CI/四件套、板上版本/HTTPS成功均待用户侧编译/烧录验收，未冒充完成。NVS公网旧HTTP覆盖值仍优先，交小马检查该单键，不扩展迁移或写NVS。
+- 交付docs/review/2.5.7-https-handoff.md与项目outputs/2.5.7-https；不改服务端/表情/许可证，不触发CI或固件编译、不烧录、不合并main，等待小马审查。

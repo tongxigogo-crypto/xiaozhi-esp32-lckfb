@@ -122,6 +122,7 @@ NetworkResult<> Ota::CheckVersion() {
     std::string method = data.length() > 0 ? "POST" : "GET";
     http->SetContent(std::move(data));
 
+    ESP_LOGI(TAG, "OTA request starting after TLS clock gate");
     if (auto opened = http->Open(method, url); !opened) {
         ESP_LOGE(TAG, "Failed to open HTTP connection: %s", opened.error().ToString().c_str());
         return opened;
