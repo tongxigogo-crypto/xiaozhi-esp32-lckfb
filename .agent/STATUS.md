@@ -220,3 +220,15 @@ Gemini审查PASS的功能提交为3672528：T1–T5公网OTA、T7相机注册、
 - 本轮启动日志：完整字体Foundfont；mode_label/state_label均Created custom object成功；进入listening，未见旧缺图标/缺字体错误。尚未肉眼确认实际屏幕像素效果。
 - 范围澄清：2.5.5仅显示事件适配、字体名表宽度及状态标签创建/生命周期修复，没有更换EAF画面。210ms没有实现；emote.json的idle/listening/neutral仍12fps（约83.3ms/帧），分别在fps行60/66/150。不存在可交付的210ms改动提交。
 - 证据outputs/2.5.5-security/evidence/device-paired-96fada8-verified.json与current-display-diagnosis-2026-11-06.json。新表情素材来源需先与Gemini制作记录对齐，避免多Agent并改。
+
+
+## 2026-11-06T08:36:58.538168+08:00 2.5.6软件准备完成，待用户验收页审查/最终烧录确认
+
+- 固件33d7bdf / 分支codex/2.5.6-completion；服务端95a9fff。用户最近明确：无真实电量继续隐藏，200–210ms范围允许5FPS200ms；情绪符号指原画爱心/问号/怒气。
+- 28px标签修复真实字体25px高度裁剪，状态空闲/聆听中/说话中；显式情绪与说话状态先后顺序均通过，下一轮清理。24套无损压缩保留原像素，非重绘声明。
+- Gemini3.8Flash(Antigravity)三范围PASS；独立固件147PASS5预期skip/服务端78PASS/人设14/情绪65案例。最终资源包24套168帧官方C/Python/源manifest一致，10字形齐全。
+- Actions42136258139 SUCCESS，四文件已在Mac+Windows项目outputs/2.5.6-completion/artifact-33d7bdf；应用2.5.6/2685056字节，资源6192626字节。latest-release.json为产物身份真值；后续文档HEAD不冒充编译SHA。
+- 正式服务已切至版本化server-95a9fff，私密配置备份，固定鉴权/TLS/控制工具确认规则保留。真实模型3情绪+两工具+thinking续接通过，未把思考/密钥写进证据。
+- 单文件验收页outputs/2.5.6-completion/acceptance/index.html与人类操作手册xiaofeiyu_2.5.6_acceptance.md已备；网页不是液晶实拍/声音验收。
+- 本轮未烧录、未发布OTA、未合并main。旧96fada8配对app/assets及全量私密备份保留；等用户明确确认再写设备。板上最新已核实仍2.5.5。此条优先于本文件早期2.5.4/未加固/未轮换等历史状态。
+- Actor Codex，证据docs/review/2.5.6-gemini-review.md、项目outputs/2.5.6-completion/evidence。历史提交33d7bdf/95a9fff由Codex集成；后续提交带agent标识，不改写已构建提交。
