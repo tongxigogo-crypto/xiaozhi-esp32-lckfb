@@ -79,6 +79,7 @@ git rev-parse --short fork/wip/2.5.4-baseline
 ## 六、待办分工
 
 **代码由编码 Agent 写，小马只出规格与审查。** 规格见 `.agent/SPEC-2.5.4.md`。
+新增规格：`.agent/SPEC-microduck-3items.md`（OTA 回滚 / 双核分工 / 救命路径，为车轮方案打地基）。
 
 | 事项 | 归属 | 状态 |
 | :--- | :--- | :--- |
