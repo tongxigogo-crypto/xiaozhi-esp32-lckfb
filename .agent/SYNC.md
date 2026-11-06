@@ -80,6 +80,7 @@ git rev-parse --short fork/wip/2.5.4-baseline
 
 **代码由编码 Agent 写，小马只出规格与审查。** 规格见 `.agent/SPEC-2.5.4.md`。
 新增规格：`.agent/SPEC-microduck-3items.md`（OTA 回滚 / 双核分工 / 救命路径，为车轮方案打地基）。
+新增规格：`.agent/SPEC-memory-3items.md`（记忆卡：裁剪前归档 / 上限 3600 / 按价值淘汰）。注意这份改的是**服务端** `memory_obsidian.py`，不涉及固件编译。
 
 | 事项 | 归属 | 状态 |
 | :--- | :--- | :--- |
