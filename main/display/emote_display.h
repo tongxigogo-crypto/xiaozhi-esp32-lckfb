@@ -2,7 +2,9 @@
 
 #include <esp_lcd_panel_io.h>
 #include <esp_lcd_panel_ops.h>
+#include <lvgl.h>
 #include <memory>
+#include <mutex>
 #include <string>
 #include "display.h"
 #include "expression_emote.h"
@@ -21,6 +23,7 @@ public:
     // Update the optional battery percentage overlay. A negative level hides it.
     void SetBatteryLevel(int level, bool charging);
     virtual void SetStatus(const char* status) override;
+    virtual void SetInteractionMode(bool automatic) override;
     virtual void SetChatMessage(const char* role, const char* content) override;
     virtual void SetTheme(Theme* theme) override;
     virtual void ShowNotification(const char* notification, int duration_ms = 3000) override;
@@ -41,12 +44,27 @@ public:
     emote_handle_t GetEmoteHandle() const { return emote_handle_; }
 
 private:
+    // Helpers require overlay_mutex_; each takes the graphics lock internally.
+    // Adapt legacy status events to layouts without status icons.
+    void SetEventMessage(const char* event, const char* message);
     void RefreshBatteryOverlay();
+    void RefreshInteractionOverlay();
+    bool CreateInteractionLabels();
 
     virtual bool Lock(int timeout_ms = 0) override;
     virtual void Unlock() override;
 
     emote_handle_t emote_handle_ = nullptr;
+    // Public setters call other public setters (e.g. battery polling).
+    // Serialize them with asset reloads; always take this before emote_lock.
+    std::recursive_mutex overlay_mutex_;
+    lv_font_t* interaction_font_ = nullptr;
+    bool assets_loaded_ = false;
+    bool automatic_mode_ = true;
+    // Successful explicit base expression for this interaction turn. Dialog
+    // animations have their own lifetime and do not participate in this latch.
+    bool explicit_emotion_ = false;
+    std::string interaction_status_;
     int battery_level_ = -1;
     bool battery_charging_ = false;
     bool battery_valid_ = false;

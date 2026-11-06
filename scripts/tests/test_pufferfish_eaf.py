@@ -7,7 +7,10 @@ import struct
 import tempfile
 import unittest
 
-from PIL import Image
+try:
+    from PIL import Image
+except ImportError:
+    Image = None
 
 
 SCRIPT = Path(__file__).resolve().parents[1] / "encode_pufferfish_eaf.py"
@@ -60,6 +63,8 @@ def decode(data):
 
 class EafTests(unittest.TestCase):
     def setUp(self):
+        if Image is None:
+            raise unittest.SkipTest("PIL not available")
         self.assertTrue(SCRIPT.is_file(), "offline encoder not implemented")
         spec = importlib.util.spec_from_file_location("pufferfish_encoder", SCRIPT)
         self.encoder = importlib.util.module_from_spec(spec)

@@ -1,0 +1,10 @@
+[Unit]
+Description=Renew Xiaofeiyu public IP certificate
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+UMask=0077
+TimeoutStartSec=300
+ExecStart=/opt/xiaofeiyu/certbot-venv/bin/certbot renew --quiet --no-random-sleep-on-renew --cert-name xiaofeiyu-ip --deploy-hook /opt/xiaofeiyu/reload-tls.sh

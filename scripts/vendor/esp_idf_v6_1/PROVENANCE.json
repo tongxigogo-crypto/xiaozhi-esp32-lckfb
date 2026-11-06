@@ -1,0 +1,10 @@
+{
+  "component": "esp-idf",
+  "version": "v6.1",
+  "commit": "fff9895c82d744c7237be8847347bdd1b07c6643",
+  "file": "components/nvs_flash/nvs_partition_tool/nvs_parser.py",
+  "sha256": "10aa8bc62371b0c959443338aa5e20dca43d4f40debc12a9e95d1e930a556261",
+  "unmodified": true,
+  "generator": "esp-idf-nvs-partition-gen==0.3.0",
+  "generator_wheel_sha256": "071c09b838cacb5562362e18e1cdf056d86a2611bb99e7d50de2b5054de33ac9"
+}

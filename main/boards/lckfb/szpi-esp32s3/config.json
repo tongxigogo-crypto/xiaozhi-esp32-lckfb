@@ -8,7 +8,10 @@
             "sdkconfig_append": [
                 "CONFIG_USE_DEVICE_AEC=y",
                 "CONFIG_USE_EMOTE_MESSAGE_STYLE=y",
-                "CONFIG_FLASH_EXPRESSION_ASSETS=y"
+                "CONFIG_FLASH_EXPRESSION_ASSETS=y",
+                "CONFIG_MMAP_FILE_NAME_LENGTH=32",
+                "CONFIG_MBEDTLS_HAVE_TIME_DATE=y",
+                "CONFIG_LWIP_SNTP_MAX_SERVERS=2"
             ]
         }
     ]

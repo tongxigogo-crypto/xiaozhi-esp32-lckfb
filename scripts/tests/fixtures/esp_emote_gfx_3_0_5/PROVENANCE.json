@@ -1,0 +1,15 @@
+{
+  "upstream": "https://github.com/espressif2022/esp_emote_gfx",
+  "commit": "47f9fd04a44d5d2b5dba8c14f73e4fc0f76b21f9",
+  "component_version": "3.0.5",
+  "registry_zip_sha256": "3d1e6e3629b274c7b5003b685828ca5033ecb01246037d7bb981ea731c6a5eda",
+  "license": "Apache-2.0",
+  "files": {
+    "src/lib/eaf/gfx_eaf_dec.c": "0ddf5f4b89957791d4f94f37ae7f34a01f54794f1a4266f9634b9926599c3f23",
+    "src/lib/eaf/gfx_eaf_dec.h": "5cd75760deb0b36ec764f2ecf6254addfcef13e8930ce314c446c5f93ebbd9e4",
+    "include/core/gfx_types.h": "3394eafb1ab0607fbfc746911a09373b54c38abf70824490415d71dbedecda26",
+    "src/common/gfx_log_priv.h": "574f298a0eaecc7afe153e099007806ea58c62177d1e39036cdb696ac0ab7f3d",
+    "include/core/gfx_log.h": "0ac9813d871ac7fb623942fe8ca57db1d7c6deb98f5e994777d4d9637b654676",
+    "LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+  }
+}

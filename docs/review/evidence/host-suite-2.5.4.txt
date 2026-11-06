@@ -1,0 +1,186 @@
+timestamp: 2026-11-05T19:27:27+0800
+command: PYTHONPATH=scripts/tests uv run --no-project --with pillow --with cmake --python <server-venv-python> python -m unittest discover -s scripts/tests -v
+exit_status: 0
+test_board_menu_has_explicit_target_defaults (test_build.BoardMenuTests) ... ok
+test_board_menu_is_sorted_and_matches_cmake (test_build.BoardMenuTests) ... ok
+test_alientek_directory_keeps_atk_board_types (test_build.BoardSelectionTests) ... ok
+test_board_display_name_comes_from_kconfig_prompt (test_build.BoardSelectionTests) ... ok
+test_board_target_matching_uses_complete_kconfig_symbols (test_build.BoardSelectionTests) ... ok
+test_common_and_core_changes_select_representatives (test_build.BoardSelectionTests) ... ok
+test_docs_only_selects_none (test_build.BoardSelectionTests) ... ok
+test_explicit_board_config_rejects_different_board_directory (test_build.BoardSelectionTests) ... ok
+test_explicit_board_config_rejects_incompatible_target (test_build.BoardSelectionTests) ... ok
+test_inferred_board_config_rejects_incompatible_target (test_build.BoardSelectionTests) ... ok
+test_m5stack_directory_can_omit_manufacturer_prefix (test_build.BoardSelectionTests) ... ok
+test_nested_manufacturer_board_path (test_build.BoardSelectionTests) ... ok
+test_new_manufacturer_directories_keep_existing_board_types (test_build.BoardSelectionTests) ... ok
+test_official_directory_can_keep_legacy_board_type (test_build.BoardSelectionTests) ... ok
+test_rejected_board_selection_stops_before_build (test_build.BoardSelectionTests) ... ok
+test_same_leaf_names_are_scoped_by_manufacturer (test_build.BoardSelectionTests) ... ok
+test_variant_name_disambiguates_shared_board_directory (test_build.BoardSelectionTests) ... ok
+test_m5stack_tab5_supports_st7121_and_st7123_panels (test_build.BoardSourceTests) ... ok
+test_relative_board_includes_exist (test_build.BoardSourceTests) ... ok
+test_blufi_expansion_disables_hotspot (test_build.BuildOptionTests) ... ok
+test_board_wake_word_support_obeys_psram_dependency (test_build.BuildOptionTests) ... ok
+test_bread_compact_esp32_config_supports_sh1106 (test_build.BuildOptionTests) ... ok
+test_bread_compact_nt26_supports_sh1106 (test_build.BuildOptionTests) ... ok
+test_camera_board_defaults_are_declared_by_board_config (test_build.BuildOptionTests) ... ok
+test_camera_mirror_guard_is_settable_by_build_defaults (test_build.BuildOptionTests) ... ok
+test_configured_build_options_are_verified (test_build.BuildOptionTests) ... ok
+test_disabled_build_options_accept_symbols_hidden_by_kconfig (test_build.BuildOptionTests) ... ok
+test_display_style_only_writes_board_supported_choices (test_build.BuildOptionTests) ... ok
+test_esp_vocat_default_style_overrides_emote_board_defaults (test_build.BuildOptionTests) ... ok
+test_incompatible_wake_word_model_is_rejected (test_build.BuildOptionTests) ... ok
+test_language_normalization_and_option (test_build.BuildOptionTests) ... ok
+test_languages_are_discovered_from_build_configuration (test_build.BuildOptionTests) ... ok
+test_lcd_board_exposes_curated_display_options (test_build.BuildOptionTests) ... ok
+test_missing_esp_sr_kconfig_has_actionable_error (test_build.BuildOptionTests) ... ok
+test_no_spiram_drops_s3_lvgl_psram_pool (test_build.BuildOptionTests) ... ok
+test_non_default_style_disables_multiline_chat (test_build.BuildOptionTests) ... ok
+test_nothrow_camera_constructor_exposes_mirror_options (test_build.BuildOptionTests) ... ok
+test_optional_usb_camera_options_require_camera_to_be_enabled (test_build.BuildOptionTests) ... ok
+test_supported_languages_match_kconfig_and_cmake (test_build.BuildOptionTests) ... ok
+test_unknown_semantic_build_option_is_rejected (test_build.BuildOptionTests) ... ok
+test_user_options_override_board_options (test_build.BuildOptionTests) ... ok
+test_wake_word_alias_selects_target_engine (test_build.BuildOptionTests) ... ok
+test_wake_word_disabled_removes_target_default_model (test_build.BuildOptionTests) ... ok
+test_wake_words_are_read_from_esp_sr_kconfig (test_build.BuildOptionTests) ... ok
+test_build_does_not_create_zip_by_default (test_build.CliTests) ... ok
+test_build_options_json_is_forwarded (test_build.CliTests) ... ok
+test_language_and_wake_word_are_forwarded (test_build.CliTests) ... ok
+test_list_boards_prints_boards_and_multi_variants (test_build.CliTests) ... ok
+test_list_languages_supports_json (test_build.CliTests) ... ok
+test_list_wake_words_supports_json (test_build.CliTests) ... ok
+test_no_arguments_prints_help_without_building (test_build.CliTests) ... ok
+test_zip_flag_is_forwarded (test_build.CliTests) ... ok
+test_duplicate_reported_identifiers_fail_collection (test_build.InvalidConfigTests) ... ok
+test_invalid_reported_identifiers_are_rejected (test_build.InvalidConfigTests) ... ok
+test_invalid_version_rule_fails_collection (test_build.InvalidConfigTests) ... ok
+test_missing_reported_type_fails_collection (test_build.InvalidConfigTests) ... ok
+test_merge_bin_enables_preview_mode (test_build.PreviewTargetTests) ... ok
+test_stage_marker_is_only_emitted_when_enabled (test_build.PreviewTargetTests) ... ok
+test_changed_cmake_target_runs_fullclean_only (test_build.TargetConfigurationTests) ... ok
+test_configure_build_replaces_stale_sdkconfig_backup (test_build.TargetConfigurationTests) ... ok
+test_configure_build_uses_all_cmake_values_in_one_run (test_build.TargetConfigurationTests) ... ok
+test_same_target_does_not_clean_build_directory (test_build.TargetConfigurationTests) ... ok
+test_sync_vscode_target_preserves_other_settings (test_build.TargetConfigurationTests) ... ok
+test_sync_vscode_target_skips_missing_settings (test_build.TargetConfigurationTests) ... ok
+test_interactive_selection_accepts_number (test_build.VariantSelectionTests) ... ok
+test_non_interactive_selection_requires_name (test_build.VariantSelectionTests) ... [ERROR] Multiple variants found in non-interactive mode; select one with --name.
+ok
+test_chip_defaults_only_contain_target_overrides (test_build.VersionTests) ... ok
+test_current_matrix_uniqueness_and_p4_variants (test_build.VersionTests) ... [WARN] Ambiguous board config for lilygo/t-cameraplus-s3 (target=esp32s3), target-matched candidates=['CONFIG_BOARD_TYPE_LILYGO_T_CAMERAPLUS_S3_V1_0_V1_1', 'CONFIG_BOARD_TYPE_LILYGO_T_CAMERAPLUS_S3_V1_2'], selecting first: CONFIG_BOARD_TYPE_LILYGO_T_CAMERAPLUS_S3_V1_0_V1_1
+[WARN] Ambiguous board config for lilygo/t-cameraplus-s3 (target=esp32s3), target-matched candidates=['CONFIG_BOARD_TYPE_LILYGO_T_CAMERAPLUS_S3_V1_0_V1_1', 'CONFIG_BOARD_TYPE_LILYGO_T_CAMERAPLUS_S3_V1_2'], selecting first: CONFIG_BOARD_TYPE_LILYGO_T_CAMERAPLUS_S3_V1_0_V1_1
+[WARN] Ambiguous board config for lilygo/t-cameraplus-s3 (target=esp32s3), target-matched candidates=['CONFIG_BOARD_TYPE_LILYGO_T_CAMERAPLUS_S3_V1_0_V1_1', 'CONFIG_BOARD_TYPE_LILYGO_T_CAMERAPLUS_S3_V1_2'], selecting first: CONFIG_BOARD_TYPE_LILYGO_T_CAMERAPLUS_S3_V1_0_V1_1
+ok
+test_default_flash_options_are_not_repeated (test_build.VersionTests) ... ok
+test_gc0308_camera_sdkconfig_keys_use_digit_zero (test_build.VersionTests) ... ok
+test_language_and_wake_word_are_not_board_config_options (test_build.VersionTests) ... ok
+test_parse_and_match (test_build.VersionTests) ... ok
+test_reported_types_and_names_are_valid_and_unique (test_build.VersionTests) ... ok
+test_zip_is_always_recreated (test_build.ZipTests) ... ok
+test_esp_hi_emoji_pack_matches_runtime_assets (test_build_default_assets.BuildDefaultAssetsTest)
+ESP-HI must only pack AAF files that emoji_display actually loads. ... ok
+test_max_size_allows_fitting_assets (test_build_default_assets.BuildDefaultAssetsTest) ... ok
+test_max_size_rejects_oversized_assets (test_build_default_assets.BuildDefaultAssetsTest) ... ok
+test_text_font_metadata_uses_bundle_charset_size_and_bpp (test_build_default_assets.BuildDefaultAssetsTest) ... ok
+test_text_font_requires_bundle (test_build_default_assets.BuildDefaultAssetsTest) ... ok
+test_wakenet10_copy_keeps_p4_p2_slice (test_build_default_assets.BuildDefaultAssetsTest) ... ok
+test_wakenet10_copy_keeps_s3_p1_slice (test_build_default_assets.BuildDefaultAssetsTest) ... ok
+test_wakenet10_copy_rejects_unknown_target (test_build_default_assets.BuildDefaultAssetsTest) ... ok
+test_camera_tool_registration_matrix (test_camera_tools.CameraToolRegistrationTests) ... ok
+[WARN] Ambiguous board config for lilygo/t-cameraplus-s3 (target=esp32s3), target-matched candidates=['CONFIG_BOARD_TYPE_LILYGO_T_CAMERAPLUS_S3_V1_0_V1_1', 'CONFIG_BOARD_TYPE_LILYGO_T_CAMERAPLUS_S3_V1_2'], selecting first: CONFIG_BOARD_TYPE_LILYGO_T_CAMERAPLUS_S3_V1_0_V1_1
+test_board_only_includes_all_its_variants (test_ci_selection.CiSelectionTests) ... ok
+test_common_paths_select_only_the_reviewed_list (test_ci_selection.CiSelectionTests) ... ok
+test_docs_only_and_empty_changes_skip_firmware (test_ci_selection.CiSelectionTests) ... ok
+test_ethernet_does_not_replace_changed_boards_wifi_variants (test_ci_selection.CiSelectionTests) ... ok
+test_ethernet_option_is_scoped_and_emits_mutually_exclusive_config (test_ci_selection.CiSelectionTests) ... ok
+test_full_selection_includes_every_default_and_ethernet (test_ci_selection.CiSelectionTests) ... ok
+test_missing_duplicate_and_invalid_option_entries_fail (test_ci_selection.CiSelectionTests) ... ok
+test_mixed_changes_preserve_nonrepresentative_boards_in_either_order (test_ci_selection.CiSelectionTests) ... ok
+test_representative_board_changes_do_not_duplicate_default_build (test_ci_selection.CiSelectionTests) ... ok
+test_reviewed_list_has_18_builds_and_all_chip_targets (test_ci_selection.CiSelectionTests) ... ok
+test_first_ci_branch_push_uses_main_merge_base (test_ci_selection.WorkflowDiffTests) ... skipped 'Upstream multi-board workflow is intentionally absent in this single-board fork'
+test_missing_push_baseline_and_manual_run_include_all_files (test_ci_selection.WorkflowDiffTests) ... skipped 'Upstream multi-board workflow is intentionally absent in this single-board fork'
+test_normal_push_includes_only_changed_paths (test_ci_selection.WorkflowDiffTests) ... skipped 'Upstream multi-board workflow is intentionally absent in this single-board fork'
+test_pr_excludes_main_changes_since_branching (test_ci_selection.WorkflowDiffTests) ... skipped 'Upstream multi-board workflow is intentionally absent in this single-board fork'
+test_rename_reports_both_board_paths (test_ci_selection.WorkflowDiffTests) ... skipped 'Upstream multi-board workflow is intentionally absent in this single-board fork'
+test_eaf_and_manifest_changes_rebuild_binary (test_emote_assets_dependencies.EmoteAssetDependencyTests) ... ok
+test_actual_reader_cache_and_touch_with_failed_transfers (test_esp_vocat_i2c.EspVocatI2cTests) ... ok
+test_failed_samples_do_not_dispatch_touch_or_battery_alerts (test_esp_vocat_i2c.EspVocatI2cTests) ... ok
+test_layout_and_application_use_real_mode (test_interaction_overlay.InteractionOverlayTests) ... ok
+test_real_methods_preserve_state_and_font_lifetime (test_interaction_overlay.InteractionOverlayTests) ... ok
+test_zero_length_lace_is_processed_without_more_input (test_ogg_demuxer.OggDemuxerTest) ... ok
+test_current_assets_preserve_manifest_frame_hashes (test_optimize_eaf.OptimizerTests) ... ok
+test_invalid_checksum_rejected (test_optimize_eaf.OptimizerTests) ... ok
+test_preserves_original_when_dictionary_cost_larger (test_optimize_eaf.OptimizerTests) ... ok
+test_rle_huffman_and_all_indices_alpha (test_optimize_eaf.OptimizerTests) ... ok
+test_single_symbol_and_255_runs (test_optimize_eaf.OptimizerTests) ... ok
+test_all_256_palette_colors_and_counts_roundtrip (test_pufferfish_eaf.EafTests) ... ok
+test_alpha_is_composited_over_black_before_quantizing (test_pufferfish_eaf.EafTests) ... ok
+test_batch_24_pngs_and_metadata (test_pufferfish_eaf.EafTests) ... ok
+test_batch_rejects_32_byte_filename_before_output (test_pufferfish_eaf.EafTests) ... ok
+test_batch_wrong_count_rejected_before_output (test_pufferfish_eaf.EafTests) ... ok
+test_default_dimensions_and_duplicate_static_frames (test_pufferfish_eaf.EafTests) ... ok
+test_invalid_block_heights_rejected (test_pufferfish_eaf.EafTests) ... ok
+test_more_than_256_colors_is_quantized (test_pufferfish_eaf.EafTests) ... ok
+test_reject_wrong_dimensions (test_pufferfish_eaf.EafTests) ... ok
+test_rle_splits_at_255_and_handles_tail_block (test_pufferfish_eaf.EafTests) ... ok
+test_annotated_tag_and_existing_draft_must_target_the_same_source (test_release.ReleaseTests) ... ok
+test_full_matrix_keeps_sdk_gated_variants_and_excludes_ci_options (test_release.ReleaseTests) ... [WARN] Ambiguous board config for lilygo/t-cameraplus-s3 (target=esp32s3), target-matched candidates=['CONFIG_BOARD_TYPE_LILYGO_T_CAMERAPLUS_S3_V1_0_V1_1', 'CONFIG_BOARD_TYPE_LILYGO_T_CAMERAPLUS_S3_V1_2'], selecting first: CONFIG_BOARD_TYPE_LILYGO_T_CAMERAPLUS_S3_V1_0_V1_1
+ok
+test_missing_and_truncated_app_partitions_fail (test_release.ReleaseTests) ... ok
+test_missing_extra_and_duplicate_variants_cannot_pass (test_release.ReleaseTests) ... ok
+test_publication_waits_for_complete_remote_assets_and_matching_digests (test_release.ReleaseTests) ... ok
+test_published_release_and_moved_tag_are_never_overwritten (test_release.ReleaseTests) ... ok
+test_rejects_invalid_version_sha_and_sdk (test_release.ReleaseTests) ... ok
+test_upload_failure_leaves_the_release_unpublished (test_release.ReleaseTests) ... ok
+test_verified_package_has_a_reproducible_checksum (test_release.ReleaseTests) ... ok
+test_wrong_version_chip_sdk_project_and_zip_layout_fail (test_release.ReleaseTests) ... ok
+test_settings_persistence_and_ota_migration (test_settings_runner.SettingsOtaRunnerTest) ... erase_existing: PASS
+erase_missing: PASS
+read_only: PASS
+preserve_other_key: PASS
+migrate_local: PASS
+preserve_public: PASS
+preserve_other_ranges: PASS
+empty_default: PASS
+ok
+test_touch_gesture_behavior (test_touch_gesture_runner.TouchGestureRunnerTest) ... ok
+test_notification_and_capability_negotiation (test_vision_refresh.VisionRefreshFirmwareTest) ... ok
+
+----------------------------------------------------------------------
+Ran 132 tests in 20.942s
+
+OK (skipped=5)
+[INFO] Switching target from esp32c3 to esp32s3.
+[INFO] Reusing target esp32s3.
+[INFO] Updated /var/folders/qg/h9vp1b414253fxn3qp3gxbh00000gn/T/tmpys1gyy9f/settings.json IDF_TARGET to esp32s3.
+Available variants for test-board:
+  1. variant-a
+  2. variant-b
+Available variants for test-board:
+  1. variant-a
+  2. variant-b
+zip bin to releases/v1.2.3_test-board.zip done
+Starting to build assets...
+Copied: /var/folders/qg/h9vp1b414253fxn3qp3gxbh00000gn/T/tmph5l_gw47/extra/small.bin -> /var/folders/qg/h9vp1b414253fxn3qp3gxbh00000gn/T/tmph5l_gw47/temp_build/assets/small.bin
+Processed 1 extra files from: /var/folders/qg/h9vp1b414253fxn3qp3gxbh00000gn/T/tmph5l_gw47/extra
+Generated: /var/folders/qg/h9vp1b414253fxn3qp3gxbh00000gn/T/tmph5l_gw47/temp_build/assets/index.json
+Generated: /var/folders/qg/h9vp1b414253fxn3qp3gxbh00000gn/T/tmph5l_gw47/temp_build/config.json
+All files have been merged into assets.bin
+Successfully generated assets.bin: /var/folders/qg/h9vp1b414253fxn3qp3gxbh00000gn/T/tmph5l_gw47/assets.bin
+Assets file size: 0.17K (177 bytes)
+Starting to build assets...
+Copied: /var/folders/qg/h9vp1b414253fxn3qp3gxbh00000gn/T/tmpsjbwy9oe/extra/big.bin -> /var/folders/qg/h9vp1b414253fxn3qp3gxbh00000gn/T/tmpsjbwy9oe/temp_build/assets/big.bin
+Processed 1 extra files from: /var/folders/qg/h9vp1b414253fxn3qp3gxbh00000gn/T/tmpsjbwy9oe/extra
+Generated: /var/folders/qg/h9vp1b414253fxn3qp3gxbh00000gn/T/tmpsjbwy9oe/temp_build/assets/index.json
+Generated: /var/folders/qg/h9vp1b414253fxn3qp3gxbh00000gn/T/tmpsjbwy9oe/temp_build/config.json
+All files have been merged into assets.bin
+Successfully generated assets.bin: /var/folders/qg/h9vp1b414253fxn3qp3gxbh00000gn/T/tmpsjbwy9oe/assets.bin
+Assets file size: 4.17K (4266 bytes)
+Error: assets.bin size 4266 bytes exceeds partition limit 100 bytes (0.10K)
+Generated: /var/folders/qg/h9vp1b414253fxn3qp3gxbh00000gn/T/tmpepoah9od/index.json
+Copied WakeNet10 wn10_nihaoxiaozhi (p2) -> /var/folders/qg/h9vp1b414253fxn3qp3gxbh00000gn/T/tmpf3n2avzo/out
+Copied WakeNet10 wn10_nihaoxiaozhi (p1) -> /var/folders/qg/h9vp1b414253fxn3qp3gxbh00000gn/T/tmp960rwiea/out
+Published v2.5.2: https://example.com/release

@@ -1,0 +1,33 @@
+{
+  "timestamp": "2026-11-05T11:44:37.326288+00:00",
+  "source_commit": "3672528aaef211b20eb1a94067f25ca2173bb5a5",
+  "run_id": 42019686320,
+  "build": "success",
+  "version": "2.5.4",
+  "chip_id": 9,
+  "files": [
+    {
+      "name": "expression_assets.bin",
+      "bytes": 5654752,
+      "sha256": "c6c9bd51de77f63056443d544e4c2685c16b6a1fd4e277734ba8335987e45627"
+    },
+    {
+      "name": "flash-args.txt",
+      "bytes": 246,
+      "sha256": "c13f65567eed95f6b775bbab730197b5c69752e550bef8c24679babce1f1d01f"
+    },
+    {
+      "name": "sha256sums.txt",
+      "bytes": 178,
+      "sha256": "d743df2593dddb16a1cfcf4d59ab8b98ca06890ee619b479538947bcd2740ab5"
+    },
+    {
+      "name": "xiaozhi.bin",
+      "bytes": 2677072,
+      "sha256": "11fe235495e36385649d9e4aaaf36d12d1f8dd60b3d89d0985e860b19d74a0c9"
+    }
+  ],
+  "asset_partition_bytes": 8388608,
+  "asset_free_bytes": 2733856,
+  "all_checksums_match": true
+}

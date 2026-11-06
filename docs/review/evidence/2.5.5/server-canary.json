@@ -1,0 +1,39 @@
+{
+  "timestamp": "2026-11-05T21:39:41+0800",
+  "candidate_commit": "259eb4389a7f13670d024258fd0d8cc99859f0f5",
+  "port": 18000,
+  "cases": [
+    {
+      "case": "OTA_registered",
+      "status": 200,
+      "token_absent": true,
+      "wss": true
+    },
+    {
+      "case": "OTA_spoofed",
+      "status": 403,
+      "token_absent": true,
+      "wss": false
+    },
+    {
+      "case": "anonymous",
+      "close_code": 1008,
+      "denied": true
+    },
+    {
+      "case": "wrong-token",
+      "close_code": 1008,
+      "denied": true
+    },
+    {
+      "case": "wrong-client",
+      "close_code": 1008,
+      "denied": true
+    },
+    {
+      "case": "valid-paired",
+      "hello": true
+    }
+  ],
+  "credential_not_in_runtime_logs": true
+}

@@ -20,13 +20,30 @@ jobs:
       image: espressif/idf:v6.1
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
-      - name: Run touch gesture behavior test
+      - name: Run firmware behavior tests
         shell: bash
         run: |
           command -v g++ || (apt-get update && apt-get install -y g++)
           g++ --version
+          source "$IDF_PATH/export.sh"
+          python -m pip install --no-deps --target /tmp/xiaofeiyu-hostdeps esp-idf-nvs-partition-gen==0.3.0
+          export PYTHONPATH="/tmp/xiaofeiyu-hostdeps"
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
           python -m unittest discover -s scripts/tests -p 'test_touch_gesture_runner.py' -v
+          python -m unittest discover -s scripts/tests -p 'test_settings_runner.py' -v
+          python -m unittest discover -s scripts/tests -p 'test_camera_tools.py' -v
+          python -m unittest discover -s scripts/tests -p 'test_vision_refresh.py' -v
+          python -m unittest discover -s scripts/tests -p 'test_interaction_overlay.py' -v
+          python -m unittest discover -s scripts/tests -p 'test_clean_emote_events.py' -v
+          python -m unittest discover -s scripts/tests -p 'test_emote_pack.py' -v
+          python -m unittest discover -s scripts/tests -p 'test_provision_device_nvs.py' -v
+          python -m unittest discover -s scripts/tests -p 'test_tls_clock.py' -v
+          python -m unittest discover -s scripts/tests -p 'test_optimize_eaf.py' -v
+          python -m unittest discover -s scripts/tests -p 'test_emote_assets_dependencies.py' -v
+          python scripts/verify_eaf_assets.py
 
       - name: Build firmware
         shell: bash
@@ -34,6 +51,9 @@ jobs:
           source "$IDF_PATH/export.sh"
           idf.py --version
           python scripts/build.py lckfb/szpi-esp32s3 --name lichuang-dev --wake-word disabled
+          grep -n "CONFIG_OTA_URL" sdkconfig
+          grep -n "CONFIG_MBEDTLS_HAVE_TIME_DATE" sdkconfig
+          grep -n "CONFIG_MMAP_FILE_NAME_LENGTH" sdkconfig
 
       - name: Verify build outputs
         shell: bash
@@ -41,7 +61,20 @@ jobs:
           test -s build/xiaozhi.bin
           test -s build/expression_assets.bin
           test "$(stat -c%s build/expression_assets.bin)" -le 8388608
+          python scripts/verify_emote_pack.py build/expression_assets.bin --board-assets
           sha256sum build/xiaozhi.bin build/expression_assets.bin > build/sha256sums.txt
+          VER=$(grep -oE 'PROJECT_VER "[0-9.]+"' CMakeLists.txt | grep -oE '[0-9.]+')
+          COMMIT=$(git -c safe.directory="$GITHUB_WORKSPACE" rev-parse --short HEAD)
+          test -n "$VER"
+          test -n "$COMMIT"
+          printf '%s\n' \
+            'app     : 0x20000  xiaozhi.bin' \
+            'assets  : 0x800000 expression_assets.bin' \
+            'boot    : 0x0      bootloader/bootloader.bin' \
+            'table   : 0x8000   partition_table/partition-table.bin' \
+            'ota_data: 0xd000   ota_data_initial.bin' \
+            "version : $VER" \
+            "commit  : $COMMIT" > build/flash-args.txt
 
       - name: Upload firmware
         uses: actions/upload-artifact@v7
@@ -51,4 +84,5 @@ jobs:
             build/xiaozhi.bin
             build/expression_assets.bin
             build/sha256sums.txt
+            build/flash-args.txt
           if-no-files-found: error

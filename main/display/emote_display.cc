@@ -28,7 +28,9 @@
 #include "assets/lang_config.h"
 #include "board.h"
 #include "expression_emote.h"
+#include "expression_emote/emote_assets.h"
 #include "gfx.h"
+#include "widget/gfx_font_lvgl.h"
 
 namespace emote {
 
@@ -130,31 +132,105 @@ EmoteDisplay::EmoteDisplay(const esp_lcd_panel_handle_t panel,
 }
 
 EmoteDisplay::~EmoteDisplay() {
+    std::lock_guard<std::recursive_mutex> guard(overlay_mutex_);
     if (emote_handle_) {
         emote_deinit(emote_handle_);
         emote_handle_ = nullptr;
     }
+    if (interaction_font_) {
+        gfx_font_lv_delete(interaction_font_);
+        interaction_font_ = nullptr;
+    }
 }
 
 void EmoteDisplay::SetEmotion(const char* const emotion) {
-    ESP_LOGI(TAG, "SetEmotion: %s", emotion);
-    if (emote_handle_ && emotion && strlen(emotion) > 0) {
-        emote_set_anim_emoji(emote_handle_, emotion);
+    std::lock_guard<std::recursive_mutex> guard(overlay_mutex_);
+    ESP_LOGI(TAG, "SetEmotion: %s", emotion ? emotion : "");
+    if (emote_handle_ && assets_loaded_ && emotion && strlen(emotion) > 0) {
+        const char* animation = emotion;
+        // Application requests "neutral" immediately after setting listening
+        // or idle status. In the clean layout keep the matching state animation.
+        if (std::strcmp(emotion, "neutral") == 0 && assets_loaded_ &&
+            emote_lock(emote_handle_) == ESP_OK) {
+            const bool clean_layout =
+                emote_get_obj_by_name(emote_handle_, "status_icon") == nullptr;
+            emote_unlock(emote_handle_);
+            if (clean_layout) {
+                if (interaction_status_ == Lang::Strings::LISTENING || interaction_status_.find("聆听") != std::string::npos) {
+                    animation = "listening";
+                } else if (interaction_status_ == Lang::Strings::SPEAKING || interaction_status_.find("说话") != std::string::npos) {
+                    animation = "speaking";
+                } else if (interaction_status_ == Lang::Strings::STANDBY || interaction_status_ == "空闲" || interaction_status_.find("待") != std::string::npos) {
+                    animation = "idle";
+                }
+            }
+        }
+        if (emote_set_anim_emoji(emote_handle_, animation) == ESP_OK) {
+            explicit_emotion_ =
+                std::strcmp(emotion, "neutral") != 0 && std::strcmp(emotion, "idle") != 0 &&
+                std::strcmp(emotion, "listening") != 0 && std::strcmp(emotion, "speaking") != 0;
+        }
         RefreshBatteryOverlay();
+        RefreshInteractionOverlay();
+    }
+}
+
+void EmoteDisplay::SetEventMessage(const char* event, const char* message) {
+    // Callers hold overlay_mutex_, which serializes this with asset reloads.
+    if (!emote_handle_ || !assets_loaded_ || !event) {
+        return;
+    }
+    // BAT only updates the component's numeric cache. Unlike IDLE it does not
+    // request any icons, and keeping it synchronized supports legacy layouts.
+    if (std::strcmp(event, EMOTE_MGR_EVT_BAT) == 0) {
+        emote_set_event_msg(emote_handle_, event, message);
+        return;
+    }
+    if (emote_lock(emote_handle_) != ESP_OK) {
+        return;
+    }
+    const bool legacy_widgets = emote_get_obj_by_name(emote_handle_, "status_icon") != nullptr &&
+                                (std::strcmp(event, EMOTE_MGR_EVT_LISTEN) != 0 ||
+                                 emote_get_obj_by_name(emote_handle_, "listen_anim") != nullptr);
+    if (legacy_widgets) {
+        emote_unlock(emote_handle_);
+        emote_set_event_msg(emote_handle_, event, message);
+        return;
+    }
+    // expression1.0.2 fetches icon resources BEFORE checking widget presence.
+    // The clean layout intentionally omits these widgets/resources, so update
+    // optional text directly instead of issuing an icon-bearing event.
+    if (auto label = emote_get_obj_by_name(emote_handle_, "toast_label")) {
+        gfx_label_set_text(label, message ? message : "");
+        gfx_obj_set_visible(label, message && message[0] != '\0');
+    }
+    emote_unlock(emote_handle_);
+
+    // Text/notifications must not replace an explicit emotion from touch or AI.
+    // Emotion metadata may arrive before the audio START state change. Keep
+    // that expression while the independent label truthfully reports speaking.
+    if (!message && !explicit_emotion_) {
+        if (std::strcmp(event, EMOTE_MGR_EVT_LISTEN) == 0) {
+            emote_set_anim_emoji(emote_handle_, "listening");
+        } else if (std::strcmp(event, EMOTE_MGR_EVT_IDLE) == 0) {
+            emote_set_anim_emoji(emote_handle_, "idle");
+        } else if (std::strcmp(event, EMOTE_MGR_EVT_SPEAK) == 0) {
+            emote_set_anim_emoji(emote_handle_, "speaking");
+        }
     }
 }
 
 void EmoteDisplay::RefreshBatteryOverlay() {
-    if (emote_handle_ == nullptr) {
-        return;
-    }
-
-    gfx_obj_t* label = emote_get_obj_by_name(emote_handle_, "battery_label");
-    if (label == nullptr) {
+    if (emote_handle_ == nullptr || !assets_loaded_) {
         return;
     }
 
     if (emote_lock(emote_handle_) != ESP_OK) {
+        return;
+    }
+    gfx_obj_t* label = emote_get_obj_by_name(emote_handle_, "battery_label");
+    if (label == nullptr) {
+        emote_unlock(emote_handle_);
         return;
     }
 
@@ -168,13 +244,84 @@ void EmoteDisplay::RefreshBatteryOverlay() {
     char text[8];
     std::snprintf(text, sizeof(text), "%d%%", battery_level_);
     gfx_label_set_text(label, text);
-    gfx_label_set_color(label, GFX_COLOR_HEX(0xB8D8E8));
-    gfx_label_set_opa(label, 160);
+    gfx_label_set_color(label, GFX_COLOR_HEX(0x22C55E));
+    gfx_label_set_opa(label, 240);
     gfx_obj_set_visible(label, true);
     emote_unlock(emote_handle_);
 }
 
+void EmoteDisplay::SetInteractionMode(bool automatic) {
+    std::lock_guard<std::recursive_mutex> guard(overlay_mutex_);
+    automatic_mode_ = automatic;
+    RefreshInteractionOverlay();
+}
+
+bool EmoteDisplay::CreateInteractionLabels() {
+    // expression1.0.2's JSON loader only creates predefined widget names.
+    // Custom labels must use the public by-type API so they are registered
+    // for lookup and destroyed automatically by emote_unload_assets.
+    struct LabelLayout {
+        const char* name;
+        int y;
+        int width;
+    };
+    const LabelLayout layouts[] = {{"mode_label", 4, 60}, {"state_label", 34, 72}};
+    for (const auto& layout : layouts) {
+        auto label = emote_create_obj_by_type(emote_handle_, "label", layout.name);
+        if (!label || emote_lock(emote_handle_) != ESP_OK) {
+            return false;
+        }
+        gfx_obj_align(label, GFX_ALIGN_TOP_LEFT, 6, layout.y);
+        // The packaged 20px font has line_height=25. A 24px label fails
+        // gfx's line-height check before it paints the first glyph.
+        gfx_obj_set_size(label, layout.width, 28);
+        gfx_label_set_text_align(label, GFX_TEXT_ALIGN_LEFT);
+        gfx_label_set_long_mode(label, GFX_LABEL_LONG_CLIP);
+        gfx_obj_set_visible(label, false);
+        emote_unlock(emote_handle_);
+    }
+    return true;
+}
+
+void EmoteDisplay::RefreshInteractionOverlay() {
+    if (!emote_handle_ || !assets_loaded_ || emote_lock(emote_handle_) != ESP_OK) {
+        return;
+    }
+    auto update_label = [this](const char* name, const char* text) {
+        auto label = emote_get_obj_by_name(emote_handle_, name);
+        if (!label) {
+            return;
+        }
+        // Never fall back to the basic font: it lacks the mode's Chinese glyphs.
+        const bool visible = interaction_font_ && text && text[0] != '\0';
+        if (interaction_font_) {
+            gfx_label_set_font(label, interaction_font_);
+        }
+        gfx_label_set_text(label, visible ? text : "");
+        // Opaque white on black remains readable on every expression frame.
+        // Custom labels are appended after both animations, so dirty animation
+        // areas repaint these labels last even when their text is unchanged.
+        gfx_label_set_color(label, GFX_COLOR_HEX(0xFFFFFF));
+        gfx_label_set_bg_color(label, GFX_COLOR_HEX(0x000000));
+        gfx_label_set_opa(label, 255);
+        gfx_label_set_bg_enable(label, true);
+        gfx_obj_set_visible(label, visible);
+    };
+    update_label("mode_label", automatic_mode_ ? "自动" : "手动");
+    const char* state_text = interaction_status_.c_str();
+    if (interaction_status_ == Lang::Strings::STANDBY || interaction_status_ == "待命" || interaction_status_ == "待机") {
+        state_text = "空闲";
+    } else if (interaction_status_ == Lang::Strings::LISTENING) {
+        state_text = "聆听中";
+    } else if (interaction_status_ == Lang::Strings::SPEAKING) {
+        state_text = "说话中";
+    }
+    update_label("state_label", state_text);
+    emote_unlock(emote_handle_);
+}
+
 void EmoteDisplay::SetBatteryLevel(const int level, const bool charging) {
+    std::lock_guard<std::recursive_mutex> guard(overlay_mutex_);
     const bool valid = level >= 0 && level <= 100;
 
     // A valid value supplied through this public hook is an external value.
@@ -192,6 +339,7 @@ void EmoteDisplay::SetBatteryLevel(const int level, const bool charging) {
         // Do not send an invalid BAT event: esp_emote_expression clamps a
         // negative percentage to 0, which would display a false "0%".
         RefreshBatteryOverlay();
+        RefreshInteractionOverlay();
         return;
     }
 
@@ -200,53 +348,68 @@ void EmoteDisplay::SetBatteryLevel(const int level, const bool charging) {
     char event_msg[16];
     std::snprintf(event_msg, sizeof(event_msg), "%d,%d", battery_charging_ ? 1 : 0,
                   battery_level_);
-    emote_set_event_msg(emote_handle_, EMOTE_MGR_EVT_BAT, event_msg);
+    SetEventMessage(EMOTE_MGR_EVT_BAT, event_msg);
     RefreshBatteryOverlay();
+    RefreshInteractionOverlay();
 }
 
 void EmoteDisplay::SetChatMessage(const char* const role, const char* const content) {
-    ESP_LOGI(TAG, "SetChatMessage: %s, %s", role, content);
+    std::lock_guard<std::recursive_mutex> guard(overlay_mutex_);
+    ESP_LOGI(TAG, "SetChatMessage: %s, %s", role ? role : "", content ? content : "");
     if (emote_handle_ && content && strlen(content) > 0) {
-        if ((std::strcmp(role, "system") == 0) && std::strstr(content, "xiaozhi.me")) {
+        if (role && (std::strcmp(role, "system") == 0) && std::strstr(content, "xiaozhi.me")) {
             size_t len = strlen(content);
             char* new_content = new char[len + 1];
             strcpy(new_content, content);
             std::replace(new_content, new_content + len, static_cast<char>(0x0A),
                          static_cast<char>(0x20));
-            emote_set_event_msg(emote_handle_, EMOTE_MGR_EVT_SYS, new_content);
+            SetEventMessage(EMOTE_MGR_EVT_SYS, new_content);
             delete[] new_content;
         } else {
-            emote_set_event_msg(emote_handle_, EMOTE_MGR_EVT_SPEAK, content);
+            SetEventMessage(EMOTE_MGR_EVT_SPEAK, content);
         }
     }
     RefreshBatteryOverlay();
+    RefreshInteractionOverlay();
 }
 
 void EmoteDisplay::SetStatus(const char* const status) {
-    ESP_LOGI(TAG, "SetStatus: %s", status);
+    std::lock_guard<std::recursive_mutex> guard(overlay_mutex_);
+    const bool status_changed = interaction_status_ != (status ? status : "");
+    interaction_status_ = status ? status : "";
+    if (status_changed && (interaction_status_ == Lang::Strings::LISTENING ||
+                           interaction_status_ == Lang::Strings::STANDBY)) {
+        // A new listening/idle turn must not inherit the preceding reply's mood.
+        explicit_emotion_ = false;
+    }
+    ESP_LOGI(TAG, "SetStatus: %s", status ? status : "");
     if (emote_handle_ && status && strlen(status) > 0) {
         if (std::strcmp(status, Lang::Strings::LISTENING) == 0) {
-            emote_set_event_msg(emote_handle_, EMOTE_MGR_EVT_LISTEN, NULL);
+            SetEventMessage(EMOTE_MGR_EVT_LISTEN, NULL);
         } else if (std::strcmp(status, Lang::Strings::STANDBY) == 0) {
-            emote_set_event_msg(emote_handle_, EMOTE_MGR_EVT_IDLE, NULL);
+            SetEventMessage(EMOTE_MGR_EVT_IDLE, NULL);
         } else if (std::strcmp(status, Lang::Strings::SPEAKING) == 0) {
-            emote_set_event_msg(emote_handle_, EMOTE_MGR_EVT_SPEAK, NULL);
+            SetEventMessage(EMOTE_MGR_EVT_SPEAK, NULL);
         } else if (std::strcmp(status, Lang::Strings::ERROR) == 0) {
-            emote_set_event_msg(emote_handle_, EMOTE_MGR_EVT_SET, NULL);
+            SetEventMessage(EMOTE_MGR_EVT_SET, NULL);
         }
     }
     RefreshBatteryOverlay();
+    RefreshInteractionOverlay();
 }
 
 void EmoteDisplay::ShowNotification(const char* notification, int duration_ms) {
-    ESP_LOGI(TAG, "ShowNotification: %s", notification);
+    std::lock_guard<std::recursive_mutex> guard(overlay_mutex_);
+    ESP_LOGI(TAG, "ShowNotification: %s", notification ? notification : "");
     if (emote_handle_ && notification && strlen(notification) > 0) {
-        emote_set_event_msg(emote_handle_, EMOTE_MGR_EVT_SYS, notification);
+        SetEventMessage(EMOTE_MGR_EVT_SYS, notification);
     }
     RefreshBatteryOverlay();
+    RefreshInteractionOverlay();
 }
 
 void EmoteDisplay::UpdateStatusBar(bool update_all) {
+    std::lock_guard<std::recursive_mutex> guard(overlay_mutex_);
     ESP_LOGD(TAG, "UpdateStatusBar: %s", update_all ? "true" : "false");
     if (!emote_handle_) {
         return;
@@ -268,6 +431,7 @@ void EmoteDisplay::UpdateStatusBar(bool update_all) {
         // Keep a valid value supplied by a future external battery event when
         // this board has no ADC-backed GetBatteryLevel implementation.
         RefreshBatteryOverlay();
+        RefreshInteractionOverlay();
     }
 }
 
@@ -285,6 +449,7 @@ void EmoteDisplay::SetPreviewImage(const void* image) {
 }
 
 bool EmoteDisplay::MountAssets(const char* partition_label) {
+    std::lock_guard<std::recursive_mutex> guard(overlay_mutex_);
     if (emote_handle_ == nullptr || partition_label == nullptr) {
         return false;
     }
@@ -303,12 +468,25 @@ bool EmoteDisplay::MountAssets(const char* partition_label) {
 }
 
 void EmoteDisplay::UnmountAssets() {
+    std::lock_guard<std::recursive_mutex> guard(overlay_mutex_);
     if (emote_handle_ != nullptr) {
+        // Labels and their font adapters must disappear before either the
+        // shared font descriptor or its mmap-backed glyph data are released.
+        if (assets_loaded_ && emote_unload_assets(emote_handle_) != ESP_OK) {
+            ESP_LOGE(TAG, "Could not unload expression assets");
+            return;
+        }
+        assets_loaded_ = false;
+        if (interaction_font_) {
+            gfx_font_lv_delete(interaction_font_);
+            interaction_font_ = nullptr;
+        }
         emote_unmount_assets(emote_handle_);
     }
 }
 
 bool EmoteDisplay::GetAssetData(const std::string& name, const uint8_t*& data, size_t& size) {
+    std::lock_guard<std::recursive_mutex> guard(overlay_mutex_);
     if (emote_handle_ == nullptr) {
         return false;
     }
@@ -316,16 +494,52 @@ bool EmoteDisplay::GetAssetData(const std::string& name, const uint8_t*& data, s
 }
 
 void EmoteDisplay::LoadAssets() {
-    if (emote_handle_ != nullptr) {
-        emote_load_assets(emote_handle_);
-        // The expression manager initializes its BAT state to 0. Hide the
-        // overlay until a real or externally supplied value arrives.
-        battery_level_ = -1;
-        battery_charging_ = false;
-        battery_valid_ = false;
-        battery_override_ = false;
-        RefreshBatteryOverlay();
+    std::lock_guard<std::recursive_mutex> guard(overlay_mutex_);
+    if (!emote_handle_) {
+        return;
     }
+    if (assets_loaded_ && emote_unload_assets(emote_handle_) != ESP_OK) {
+        ESP_LOGE(TAG, "Could not unload expression assets for reload");
+        return;
+    }
+    assets_loaded_ = false;
+    explicit_emotion_ = false;
+    if (interaction_font_) {
+        gfx_font_lv_delete(interaction_font_);
+        interaction_font_ = nullptr;
+    }
+    if (emote_load_assets(emote_handle_) != ESP_OK) {
+        // The loader may have allocated tables/objects before failing. Clean
+        // them now, while keeping rendering/event entry points disabled.
+        emote_unload_assets(emote_handle_);
+        ESP_LOGE(TAG, "Could not load expression assets");
+        return;
+    }
+    if (!CreateInteractionLabels()) {
+        emote_unload_assets(emote_handle_);
+        ESP_LOGE(TAG, "Could not create interaction labels");
+        return;
+    }
+    assets_loaded_ = true;
+    const uint8_t* data = nullptr;
+    size_t size = 0;
+    if (emote_get_asset_data_by_name(emote_handle_, "font_puhui_common_20_4.bin", &data, &size) ==
+            ESP_OK &&
+        data && size > 0) {
+        // One descriptor shared by both labels, no copy of the font binary.
+        interaction_font_ = gfx_font_lv_load_from_binary(const_cast<uint8_t*>(data));
+    }
+    if (!interaction_font_) {
+        ESP_LOGW(TAG, "Interaction overlay font unavailable");
+    }
+    // A reload must not invent a battery reading. Mode and status are cached
+    // independently of expression assets and survive reloads.
+    battery_level_ = -1;
+    battery_charging_ = false;
+    battery_valid_ = false;
+    battery_override_ = false;
+    RefreshBatteryOverlay();
+    RefreshInteractionOverlay();
 }
 
 void EmoteDisplay::SetTheme(Theme* const theme) { ESP_LOGI(TAG, "SetTheme: %p", theme); }
@@ -338,6 +552,7 @@ bool EmoteDisplay::Lock(const int timeout_ms) {
 void EmoteDisplay::Unlock() {}
 
 bool EmoteDisplay::StopAnimDialog() {
+    std::lock_guard<std::recursive_mutex> guard(overlay_mutex_);
     ESP_LOGI(TAG, "StopAnimDialog");
     if (emote_handle_) {
         return emote_stop_anim_dialog(emote_handle_);
@@ -346,14 +561,16 @@ bool EmoteDisplay::StopAnimDialog() {
 }
 
 bool EmoteDisplay::InsertAnimDialog(const char* emoji_name, uint32_t duration_ms) {
-    ESP_LOGI(TAG, "InsertAnimDialog: %s, %" PRIu32, emoji_name, duration_ms);
-    if (emote_handle_ && emoji_name) {
+    std::lock_guard<std::recursive_mutex> guard(overlay_mutex_);
+    ESP_LOGI(TAG, "InsertAnimDialog: %s, %" PRIu32, emoji_name ? emoji_name : "", duration_ms);
+    if (emote_handle_ && assets_loaded_ && emoji_name) {
         return emote_insert_anim_dialog(emote_handle_, emoji_name, duration_ms);
     }
     return false;
 }
 
 void EmoteDisplay::RefreshAll() {
+    std::lock_guard<std::recursive_mutex> guard(overlay_mutex_);
     if (emote_handle_) {
         emote_notify_all_refresh(emote_handle_);
         return;

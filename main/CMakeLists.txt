@@ -37,6 +37,7 @@ set(SOURCES "audio/audio_codec.cc"
             "system_info.cc"
             "application.cc"
             "ota.cc"
+            "network_time.cc"
             "settings.cc"
             "device_state_machine.cc"
             "assets.cc"
@@ -173,8 +174,8 @@ elseif(CONFIG_BOARD_TYPE_LICHUANG_DEV_S3)
     set(EMOTE_RESOLUTION "320_240")
     set(EMOTE_EXTERNAL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/boards/lckfb/szpi-esp32s3/assets")
     set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
-        "${CMAKE_CURRENT_SOURCE_DIR}/boards/lckfb/szpi-esp32s3/assets/320_240/config.json"
         "${CMAKE_CURRENT_SOURCE_DIR}/boards/lckfb/szpi-esp32s3/assets/320_240/layout.json"
+        "${CMAKE_CURRENT_SOURCE_DIR}/boards/lckfb/szpi-esp32s3/assets/320_240/emote.json"
     )
 elseif(CONFIG_BOARD_TYPE_QUANDONG_S3_DEV)
     set(BOARD_DIR "quandong-s3-dev")
@@ -1462,6 +1463,19 @@ if ("${size}" AND "${offset}")
 
         if(EMOTE_EXTERNAL_PATH)
             build_speaker_assets_bin("${ASSETS_PARTITION}" ${EMOTE_RESOLUTION} ${ASSETS_FILE} ${CONFIG_MMAP_FILE_NAME_LENGTH} "${EMOTE_EXTERNAL_PATH}")
+            # The component command tracks its script only. Track external input
+            # files too so incremental builds cannot reuse a stale assets binary.
+            file(GLOB_RECURSE EMOTE_EXTERNAL_INPUTS CONFIGURE_DEPENDS
+                "${EMOTE_EXTERNAL_PATH}/*.eaf"
+                "${EMOTE_EXTERNAL_PATH}/*.json"
+                "${EMOTE_EXTERNAL_PATH}/*.png"
+                "${EMOTE_EXTERNAL_PATH}/*.jpg"
+                "${EMOTE_EXTERNAL_PATH}/*.jpeg"
+                "${EMOTE_EXTERNAL_PATH}/*.ttf"
+            )
+            add_custom_command(OUTPUT ${ASSETS_FILE} APPEND
+                DEPENDS ${EMOTE_EXTERNAL_INPUTS}
+            )
         else()
             build_speaker_assets_bin("${ASSETS_PARTITION}" ${EMOTE_RESOLUTION} ${ASSETS_FILE} ${CONFIG_MMAP_FILE_NAME_LENGTH})
         endif()

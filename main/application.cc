@@ -31,6 +31,7 @@
 #include "display.h"
 #include "mcp_server.h"
 #include "mqtt_protocol.h"
+#include "network_time.h"
 #include "settings.h"
 #include "system_info.h"
 #include "text_glyph_payload.h"
@@ -114,6 +115,7 @@ void Application::Initialize() {
     // Setup the display
     auto display = board.GetDisplay();
     display->SetupUI();
+    display->SetInteractionMode(listening_mode_ != kListeningModeManualStop);
     // Print board name/version info
     display->SetChatMessage("system", SystemInfo::GetUserAgent().c_str());
 
@@ -423,6 +425,12 @@ void Application::ActivationTask() {
     // Check for new firmware version
     CheckNewVersion();
 
+    // A cold-boot clock timeout leaves assets pending. Version checking may
+    // have given SNTP time to finish; retry once before protocol startup.
+    if (!assets_version_checked_) {
+        CheckAssetsVersion();
+    }
+
     // Initialize the protocol
     InitializeProtocol();
 
@@ -450,6 +458,13 @@ void Application::CheckAssetsVersion() {
     // Check if there is a new assets need to be downloaded
     std::string download_url = settings.GetString("download_url");
 
+    // Do not consume a pending HTTPS URL before the clock is usable.
+    // This runs in ActivationTask, not the main loop or an audio task.
+    if (!download_url.empty() && !NetworkTime::WaitForTls(download_url)) {
+        ESP_LOGW(TAG, "Deferring assets download until network time is ready");
+        assets_version_checked_ = false;
+        download_url.clear();
+    }
     if (!download_url.empty()) {
         settings.EraseKey("download_url");
 
@@ -1110,8 +1125,21 @@ void Application::HandleStateChangedEvent() {
             audio_service_.EnableWakeWordDetection(audio_service_.IsAfeWakeWord());
             break;
         case kDeviceStateWifiConfiguring:
+            display->SetStatus(Lang::Strings::WIFI_CONFIG_MODE);
             audio_service_.EnableVoiceProcessing(false);
             audio_service_.EnableWakeWordDetection(false);
+            break;
+        case kDeviceStateStarting:
+            display->SetStatus(Lang::Strings::INITIALIZING);
+            break;
+        case kDeviceStateUpgrading:
+            display->SetStatus(Lang::Strings::UPGRADING);
+            break;
+        case kDeviceStateActivating:
+            display->SetStatus(Lang::Strings::ACTIVATION);
+            break;
+        case kDeviceStateFatalError:
+            display->SetStatus(Lang::Strings::ERROR);
             break;
         default:
             // Do nothing
@@ -1233,6 +1261,7 @@ void Application::AbortSpeaking(AbortReason reason) {
 
 void Application::SetListeningMode(ListeningMode mode) {
     listening_mode_ = mode;
+    Board::GetInstance().GetDisplay()->SetInteractionMode(mode != kListeningModeManualStop);
     SetDeviceState(kDeviceStateListening);
 }
 

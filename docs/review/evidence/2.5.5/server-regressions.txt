@@ -1,0 +1,83 @@
+timestamp: 2026-11-05T21:30:36+0800
+command: PATH=/opt/homebrew/bin:$PATH .venv/bin/python -m unittest test_security_access test_stream_gate_and_timeout test_readiness_254 -v
+exit_status: 0
+261105 21:30:36[0.9.8_00000000000000][plugins_func.functions.control_computer]-INFO-control_computer 被调用 | action=open_app | target=Calculator | confirmed=False
+261105 21:30:36[0.9.8_00000000000000][plugins_func.functions.control_computer]-INFO-写操作未确认，暂存 pending_action: {'action': 'open_app', 'target': 'Calculator', 'time': 1793885436.5061052}
+261105 21:30:36[0.9.8_00000000000000][core.api.ota_handler]-INFO-OTA请求设备ID: unknown
+261105 21:30:36[0.9.8_00000000000000][core.api.ota_handler]-INFO-OTA请求设备ID: fixture-device
+261105 21:30:36[0.9.8_00000000000000][core.api.ota_handler]-INFO-OTA请求ClientID: fixture-client
+261105 21:30:36[0.9.8_00000000000000][core.api.ota_handler]-INFO-未配置MQTT网关，为设备 fixture-device 下发WebSocket配置
+261105 21:30:36[0.9.8_00000000000000][core.api.ota_handler]-INFO-查找型号 default 的固件，找到 0 个候选
+261105 21:30:36[0.9.8_00000000000000][core.api.ota_handler]-INFO-设备 fixture-device 固件已是最新: 0.0.0
+261105 21:30:36[0.9.8_00000000000000][core.api.ota_handler]-INFO-OTA请求设备ID: fixture-device
+261105 21:30:36[0.9.8_00000000000000][core.api.ota_handler]-INFO-OTA请求ClientID: fixture-client
+261105 21:30:36[0.9.8_00000000000000][core.api.ota_handler]-INFO-未配置MQTT网关，为设备 fixture-device 下发WebSocket配置
+261105 21:30:36[0.9.8_00000000000000][core.api.ota_handler]-INFO-查找型号 default 的固件，找到 0 个候选
+261105 21:30:36[0.9.8_00000000000000][core.api.ota_handler]-INFO-设备 fixture-device 固件已是最新: 0.0.0
+261105 21:30:36[0.9.8_00000000000000][core.api.ota_handler]-INFO-OTA请求设备ID: unknown
+261105 21:30:36[0.9.8_00000000000000][plugins_func.functions.search_notes]-WARNING-search_notes exceeded its local search budget
+261105 21:30:36[0.9.8_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-发送客户端mcp工具调用请求: self.get_device_status，参数: {}
+261105 21:30:36[0.9.8_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-客户端mcp工具调用 self.get_device_status 成功，原始结果: {'content': [{'type': 'text', 'text': '{"audio_speaker": {"volume": 50}}'}]}
+261105 21:30:36[0.9.8_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-发送客户端mcp工具调用请求: self.get_device_status，参数: {}
+261105 21:30:36[0.9.8_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-客户端mcp工具调用 self.get_device_status 成功，原始结果: {'content': [{'type': 'text', 'text': '{"battery": {"level": 0, "charging": false}}'}]}
+261105 21:30:36[0.9.8_00000000000000][plugins_func.functions.web_search]-INFO-web_search 被调用 | query=fixture query
+261105 21:30:36[0.9.8_00000000000000][plugins_func.functions.web_search]-INFO-web_search 配置 | provider=deepseek | max_results=3
+261105 21:30:36[0.9.8_00000000000000][plugins_func.functions.web_search]-INFO-搜索结果组装完成:
+search results
+261105 21:30:36[0.9.8_00000000000000][plugins_func.functions.web_search]-INFO-web_search 被调用 | query=fixture query
+261105 21:30:36[0.9.8_00000000000000][plugins_func.functions.web_search]-INFO-web_search 配置 | provider=deepseek | max_results=3
+261105 21:30:36[0.9.8_00000000000000][plugins_func.functions.web_search]-INFO-搜索结果组装完成:
+search results
+261105 21:30:36[0.9.8_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-发送客户端mcp工具调用请求: self.camera.take_photo，参数: {'question': 'fixture question'}
+261105 21:30:36[0.9.8_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-客户端mcp工具调用 self.camera.take_photo 成功，原始结果: {'content': [{'type': 'text', 'text': 'fixture image result'}]}
+261105 21:30:36[0.9.8_00000000000000][core.providers.tools.device_mcp.mcp_handler]-ERROR-发送MCP消息失败: fixture send failure
+261105 21:30:36[0.9.8_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-发送客户端mcp工具调用请求: self.camera.take_photo，参数: {'question': 'fixture question'}
+261105 21:30:36[0.9.8_00000000000000][core.providers.tools.device_mcp.mcp_handler]-INFO-客户端mcp工具调用 self.camera.take_photo 成功，原始结果: {'content': [{'type': 'text', 'text': 'fixture image result'}]}
+test_invalid_token_unknown_device_and_wrong_client_denied (test_security_access.AccessTests) ... ok
+test_known_mac_without_token_denied (test_security_access.AccessTests) ... ok
+test_legacy_allowlist_requires_token_and_rejects_unlisted (test_security_access.AccessTests) ... ok
+test_paired_disabled_or_missing_policy_fails_closed (test_security_access.AccessTests) ... ok
+test_rejected_spoof_cannot_evict_active_connection (test_security_access.AccessTests) ... ok
+test_valid_paired_token_returns_verified_identity (test_security_access.AccessTests) ... ok
+test_verified_identity_reaches_handler (test_security_access.AccessTests) ... ok
+test_authenticated_device_still_requires_confirmation (test_security_access.ComputerTests) ... ok
+test_no_authenticated_context_cannot_run_or_queue (test_security_access.ComputerTests) ... ok
+test_wrong_authenticated_identity_denied (test_security_access.ComputerTests) ... ok
+test_connection_never_logs_header_values (test_security_access.HeaderLogTests) ... ok
+test_explicit_wss_precedes_host_inference (test_security_access.OtaTests) ... ok
+test_legacy_unlisted_device_cannot_obtain_token (test_security_access.OtaTests) ... ok
+test_paired_mode_does_not_issue_mqtt_credentials (test_security_access.OtaTests) ... ok
+test_private_request_values_not_logged (test_security_access.OtaTests) ... ok
+test_public_paired_metadata_never_mints_token (test_security_access.OtaTests) ... ok
+test_unregistered_device_metadata_rejected (test_security_access.OtaTests) ... ok
+test_future_signed_token_rejected (test_security_access.SignatureTests) ... ok
+test_actual_tool_timeout_emits_fallback_and_last (test_stream_gate_and_timeout.ChatIntegrationTests) ... ok
+test_cancelled_tool_propagates_and_closes_turn (test_stream_gate_and_timeout.ChatIntegrationTests) ... ok
+test_direct_answer_marker_split_at_all_boundaries (test_stream_gate_and_timeout.ChatIntegrationTests) ... ok
+test_llm_failure_still_closes_turn (test_stream_gate_and_timeout.ChatIntegrationTests) ... ok
+test_every_partition_of_all_marker_variants (test_stream_gate_and_timeout.GateTests) ... ok
+test_malformed_marker_is_bounded (test_stream_gate_and_timeout.GateTests) ... ok
+test_normal_literals_and_body_brackets_are_preserved (test_stream_gate_and_timeout.GateTests) ... ok
+test_partial_control_marker_not_spoken_on_eof (test_stream_gate_and_timeout.GateTests) ... ok
+test_second_marker_cross_chunk_is_not_spoken (test_stream_gate_and_timeout.GateTests) ... ok
+test_search_deadline_returns_direct_truthful_fallback (test_stream_gate_and_timeout.LocalSearchTests) ... ok
+test_sync_plugin_does_not_block_event_loop (test_stream_gate_and_timeout.PluginTests) ... ok
+test_caller_cancellation_propagates (test_stream_gate_and_timeout.TimeoutTests) ... ok
+test_timeout_cancels_and_reports_truthfully (test_stream_gate_and_timeout.TimeoutTests) ... ok
+test_missing_battery_is_not_fabricated (test_readiness_254.DeviceStatusTests) ... ok
+test_real_zero_percent_is_preserved (test_readiness_254.DeviceStatusTests) ... ok
+test_placeholder_key_falls_back_to_environment (test_readiness_254.SearchCredentialTests) ... ok
+test_valid_explicit_key_retains_precedence (test_readiness_254.SearchCredentialTests) ... ok
+test_test_client_name_does_not_bypass_authentication (test_readiness_254.VisionAuthenticationTests) ... ok
+test_valid_device_token_is_accepted (test_readiness_254.VisionAuthenticationTests) ... ok
+test_wrong_device_header_is_rejected (test_readiness_254.VisionAuthenticationTests) ... ok
+test_capability_refreshes_token_before_each_camera_call (test_readiness_254.VisionRefreshTests) ... ok
+test_failed_refresh_prevents_capture (test_readiness_254.VisionRefreshTests) ... ok
+test_initialize_records_refresh_capability (test_readiness_254.VisionRefreshTests) ... ok
+test_mcp_debug_log_never_contains_vision_token (test_readiness_254.VisionRefreshTests) ... ok
+test_old_device_without_refresh_capability_is_unchanged (test_readiness_254.VisionRefreshTests) ... ok
+
+----------------------------------------------------------------------
+Ran 43 tests in 0.206s
+
+OK

@@ -1,0 +1,31 @@
+timestamp: 2026-11-05T19:21:04+0800
+command: <server-venv-python> scripts/verify_eaf_assets.py
+exit_status: 0
+{
+  "registrations": 39,
+  "original_frames": 168,
+  "original_bytes": 5343802,
+  "packed_unique_files": 21,
+  "packed_unique_bytes": 4113785,
+  "saved_bytes": 1230017,
+  "official_decoder": "esp_emote_gfx 3.0.5",
+  "compiler_command": [
+    "/usr/bin/clang",
+    "-x",
+    "c",
+    "-std=c11",
+    "-O2",
+    "-include",
+    "stdlib.h",
+    "-include",
+    "stddef.h",
+    "-I/var/folders/qg/h9vp1b414253fxn3qp3gxbh00000gn/T/eaf-verify-caufaxrt/shim",
+    "-I/Users/tong/Desktop/\u7f51\u9875\u8bbe\u8ba1/\u673a\u5668\u4ebaDIY/runtime/xiaozhi-esp32/scripts/tests/fixtures/esp_emote_gfx_3_0_5/include",
+    "-I/Users/tong/Desktop/\u7f51\u9875\u8bbe\u8ba1/\u673a\u5668\u4ebaDIY/runtime/xiaozhi-esp32/scripts/tests/fixtures/esp_emote_gfx_3_0_5/src",
+    "-I/Users/tong/Desktop/\u7f51\u9875\u8bbe\u8ba1/\u673a\u5668\u4ebaDIY/runtime/xiaozhi-esp32/scripts/tests/fixtures/esp_emote_gfx_3_0_5/src/lib/eaf",
+    "/Users/tong/Desktop/\u7f51\u9875\u8bbe\u8ba1/\u673a\u5668\u4ebaDIY/runtime/xiaozhi-esp32/scripts/tests/fixtures/esp_emote_gfx_3_0_5/src/lib/eaf/gfx_eaf_dec.c",
+    "/Users/tong/Desktop/\u7f51\u9875\u8bbe\u8ba1/\u673a\u5668\u4ebaDIY/runtime/xiaozhi-esp32/scripts/tests/fixtures/esp_emote_gfx_3_0_5/eaf_host.c",
+    "-o",
+    "/var/folders/qg/h9vp1b414253fxn3qp3gxbh00000gn/T/eaf-verify-caufaxrt/eaf_host"
+  ]
+}
