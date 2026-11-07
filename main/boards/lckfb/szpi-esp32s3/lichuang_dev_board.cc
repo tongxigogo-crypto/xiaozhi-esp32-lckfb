@@ -95,6 +95,7 @@ private:
     Pca9557* pca9557_;
     Esp32Camera* camera_;
     PressToTalkMcpTool* press_to_talk_tool_ = nullptr;
+    bool use_yunzhou_voice_ = false;  // 本地触摸音效音色：false=小何，true=云舟 2.0
     esp_lcd_touch_handle_t touch_ = nullptr;
 
     void InitializeI2c() {
@@ -263,24 +264,24 @@ private:
 
     void ApplyGesture(lckfb_touch::Gesture gesture, bool second_tap = false) {
         const auto feedback = lckfb_touch::ResolveFeedback(gesture, second_tap);
+
+        // 视觉先投递：表情走应用任务，不等声音；声音请求本身也是非阻塞的。
+        if (feedback.emotion != nullptr) {
+            const char* emotion = feedback.emotion;
+            Application::GetInstance().Schedule([this, emotion]() {
+                if (display_ != nullptr) {
+                    display_->SetEmotion(emotion);
+                }
+            });
+        }
+
         if (feedback.sound != lckfb_touch::TouchSound::kNone) {
-            // 音色切换接口冻结前，板端固定用小何那一套（云舟 2.0 素材已随包内嵌）。
-            const std::string_view clip = lckfb_touch::ResolveSoundClip(feedback.sound, false);
+            const std::string_view clip =
+                lckfb_touch::ResolveSoundClip(feedback.sound, use_yunzhou_voice_);
             const bool played = !clip.empty() && Application::GetInstance().PlayUiSound(clip);
             ESP_LOGD(TAG, "touch sound %s -> %s", lckfb_touch::TouchSoundName(feedback.sound),
                      played ? "played" : "dropped(visual only)");
         }
-        if (feedback.emotion == nullptr) {
-            return;
-        }
-        const char* emotion = feedback.emotion;
-
-        // Keep display mutations on the application task.
-        Application::GetInstance().Schedule([this, emotion]() {
-            if (display_ != nullptr) {
-                display_->SetEmotion(emotion);
-            }
-        });
     }
 
     void TouchGestureLoop() {
@@ -357,6 +358,29 @@ private:
             PropertyList(), [this](const PropertyList& properties) {
                 EnterWifiConfigMode();
                 return true;
+            });
+
+        // 本地触摸音效的当前音色档案：小何（女）/ 云舟 2.0（男）。
+        // 服务端在切换 TTS 音色时同步调用，设备侧据此选素材；重启后默认小何。
+        mcp_server.AddTool(
+            "self.set_voice_profile",
+            "Switch the local touch feedback voice profile to match the cloud TTS voice.",
+            PropertyList({Property("profile", kPropertyTypeString)}),
+            [this](const PropertyList& properties) -> ReturnValue {
+                const std::string profile = properties["profile"].value<std::string>();
+                if (profile == "xiaohe") {
+                    use_yunzhou_voice_ = false;
+                } else if (profile == "yunzhou") {
+                    use_yunzhou_voice_ = true;
+                } else {
+                    return false;  // 白名单外一律拒绝，不静默降级
+                }
+                return std::string(use_yunzhou_voice_ ? "yunzhou" : "xiaohe");
+            });
+        mcp_server.AddTool("self.get_voice_profile",
+            "Report the local touch feedback voice profile currently in effect.",
+            PropertyList(), [this](const PropertyList&) -> ReturnValue {
+                return std::string(use_yunzhou_voice_ ? "yunzhou" : "xiaohe");
             });
 
         // Allow switching between press-to-talk (长按说话) and click-to-talk (单击唤醒)

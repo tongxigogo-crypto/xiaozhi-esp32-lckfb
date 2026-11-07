@@ -43,6 +43,7 @@ jobs:
           python -m unittest discover -s scripts/tests -p 'test_tls_clock.py' -v
           python -m unittest discover -s scripts/tests -p 'test_optimize_eaf.py' -v
           python -m unittest discover -s scripts/tests -p 'test_emote_assets_dependencies.py' -v
+          python -m unittest discover -s scripts/tests -p 'test_touch_clips_sync.py' -v
           python scripts/verify_eaf_assets.py
 
       - name: Build firmware

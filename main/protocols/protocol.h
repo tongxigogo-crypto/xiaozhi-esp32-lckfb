@@ -13,6 +13,10 @@ struct AudioStreamPacket {
     uint32_t timestamp = 0;
     uint32_t playback_id = 0;
     uint32_t media_position_ms = 0;
+    // 本地触摸短声音专用：标记来源与所属播放代次，TTS 抢占后按代次丢弃，
+    // 不会混进云端语音的播放链路（工单2 §6.4）。
+    bool is_ui_sound = false;
+    uint32_t ui_generation = 0;
     std::vector<uint8_t> payload;
 };
 

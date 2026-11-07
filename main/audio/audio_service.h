@@ -6,6 +6,7 @@
 #include <condition_variable>
 #include <memory>
 #include <mutex>
+#include <string>
 
 #include <esp_timer.h>
 #include <freertos/FreeRTOS.h>
@@ -101,6 +102,8 @@ struct AudioTask {
     uint32_t timestamp = 0;
     uint32_t playback_id = 0;
     uint32_t media_position_ms = 0;
+    bool is_ui_sound = false;
+    uint32_t ui_generation = 0;
 };
 
 struct DebugStatistics {
@@ -146,10 +149,13 @@ public:
     std::unique_ptr<AudioStreamPacket> PopPacketFromSendQueue();
     void PlaySound(const std::string_view& sound);
     // 本地 UI 短声音（触摸反馈）：只在没有云端 TTS 播放/排队时接受。
-    // 与 TTS 共用解码链路；TTS 到来时丢弃尚未播完的 UI 帧，避免叠播（工单2 §6.4）。
+    // 立即返回，解复用与入队交给独立任务，调用方（触摸线程）不被阻塞。
     bool PlayUiSound(const std::string_view& sound);
     void SetUiSoundMuted(bool muted);
-    bool IsUiSoundActive() const { return ui_sound_active_.load(); }
+    bool IsUiSoundMuted() const { return ui_sound_muted_.load(); }
+    bool IsUiSoundActive() const { return ui_active_generation_.load() != 0; }
+    // 立即撤销本地短声音：停止生产、清空待解码与已解码 PCM。
+    void CancelUiSound();
     bool ReadAudioData(std::vector<int16_t>& data, int sample_rate, int samples);
     void ResetDecoder();
     void SetModelsList(srmodel_list_t* models_list);
@@ -205,9 +211,15 @@ private:
 
     bool audio_engine_initialized_ = false;
     bool voice_detected_ = false;
-    // 本地触摸短声音：非静音且无 TTS 时才会置位；TTS 抢回通道时清零。
-    std::atomic<bool> ui_sound_active_{false};
+    // 本地触摸短声音：整段播放持有一个代次令牌；TTS 抢占后令牌作废，
+    // 生产者停止、待解码帧与已解码 PCM 一起丢弃。
     std::atomic<bool> ui_sound_muted_{false};
+    std::atomic<uint32_t> ui_generation_{0};         // 每段音效递增
+    std::atomic<uint32_t> ui_active_generation_{0};  // 0 = 当前没有本地音效
+    std::string ui_request_ogg_;
+    uint32_t ui_request_generation_ = 0;
+    bool ui_request_pending_ = false;
+    TaskHandle_t ui_sound_task_handle_ = nullptr;
 #if CONFIG_USE_DEVICE_AEC
     bool device_aec_enabled_ = true;
 #else
@@ -223,6 +235,12 @@ private:
     void AudioInputTask();
     void AudioOutputTask();
     void OpusCodecTask();
+    void UiSoundTask();
+    // UI 帧入队：等待空间时同时监听代次作废，抢占后立刻返回 false。
+    bool PushUiPacketToDecodeQueue(std::unique_ptr<AudioStreamPacket> packet, uint32_t generation);
+    bool IsUiGenerationCurrent(uint32_t generation) const {
+        return generation != 0 && ui_generation_.load() == generation;
+    }
     void PushTaskToEncodeQueue(AudioTaskType type, std::vector<int16_t>&& pcm);
     bool InitializeAudioEngine();
     void SetDecodeSampleRate(int sample_rate, int frame_duration);

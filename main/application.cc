@@ -123,6 +123,8 @@ void Application::Initialize() {
     auto codec = board.GetAudioCodec();
     audio_service_.Initialize(codec);
     audio_service_.Start();
+    // 重启/重连后按当前实际音量恢复静音状态：0 即静音，本地音效不得绕过。
+    audio_service_.SetUiSoundMuted(codec != nullptr && codec->output_volume() == 0);
     ESP_LOGI(TAG, "After board/audio init");
     SystemInfo::PrintHeapStats();
 
@@ -998,6 +1000,9 @@ void Application::HandleWakeWordDetectedEvent() {
 }
 
 void Application::BeginWakeWordInvoke(const std::string& wake_word) {
+    // 主人唤醒的优先级高于本地触摸音效：立刻撤销，不等连接建立。
+    audio_service_.CancelUiSound();
+
     // Must run in the main task with the device in idle state
     audio_service_.EncodeWakeWord();
 
