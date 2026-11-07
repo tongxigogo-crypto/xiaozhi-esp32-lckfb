@@ -346,6 +346,7 @@ void AudioService::AudioOutputTask() {
 
         auto task = std::move(audio_playback_queue_.front());
         audio_playback_queue_.pop_front();
+        bool notify_drained = false;
         if (task.is_ui_sound &&
             (!ui_arbiter_.IsCurrent(task.ui_generation) || ui_arbiter_.Muted() ||
              codec_->output_volume() == 0)) {
@@ -380,7 +381,7 @@ void AudioService::AudioOutputTask() {
         last_output_time_ = std::chrono::steady_clock::now();
         debug_statistics_.playback_count++;
 
-        bool notify_drained = false;
+        notify_drained = false;
         lock.lock();
 #if CONFIG_USE_SERVER_AEC
         /* Record the timestamp for server AEC */
