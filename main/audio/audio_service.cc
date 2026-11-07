@@ -825,10 +825,10 @@ void AudioService::PlaySound(const std::string_view& ogg) {
 }
 
 void AudioService::SetUiSoundMuted(bool muted) {
+    // 静音切换与队列清理必须同锁完成，否则取消与新准入会交错留下占用残留。
+    std::lock_guard<std::mutex> lock(audio_queue_mutex_);
     ui_arbiter_.SetMuted(muted);
     if (muted) {
-        // 静音必须作用到在途播放，而不是只挡下一次请求。
-        std::lock_guard<std::mutex> lock(audio_queue_mutex_);
         ui_request_pending_ = false;
         ui_request_ogg_.clear();
         audio_decode_queue_.clear();
@@ -839,10 +839,10 @@ void AudioService::SetUiSoundMuted(bool muted) {
 }
 
 void AudioService::SetTtsBusy(bool busy) {
+    std::lock_guard<std::mutex> lock(audio_queue_mutex_);
     ui_arbiter_.SetTtsBusy(busy);
     if (busy) {
         // 进入 TTS 会话即撤掉本地音效，清空其残留帧。
-        std::lock_guard<std::mutex> lock(audio_queue_mutex_);
         ui_request_pending_ = false;
         ui_request_ogg_.clear();
         audio_decode_queue_.clear();
@@ -853,8 +853,8 @@ void AudioService::SetTtsBusy(bool busy) {
 }
 
 void AudioService::CancelUiSound() {
-    ui_arbiter_.Cancel();
     std::lock_guard<std::mutex> lock(audio_queue_mutex_);
+    ui_arbiter_.Cancel();
     ui_request_pending_ = false;
     ui_request_ogg_.clear();
     audio_decode_queue_.clear();
@@ -926,7 +926,7 @@ void AudioService::UiSoundTask() {
             ui_request_pending_ = false;
         }
         if (ogg.empty() || !ui_arbiter_.IsCurrent(generation)) {
-            ui_arbiter_.SetProducing(false);
+            ui_arbiter_.EndProducing(generation);
             continue;
         }
         if (codec_ != nullptr && !codec_->output_enabled()) {
@@ -950,8 +950,15 @@ void AudioService::UiSoundTask() {
         });
         demuxer->Reset();
         demuxer->Process(reinterpret_cast<const uint8_t*>(ogg.data()), ogg.size());
-        // 生产结束；排空判定由输出任务经 MarkPlaybackDrainedLocked 收敛。
-        ui_arbiter_.SetProducing(false);
+        // 生产结束（带令牌，旧段迟到不得影响新段）。若此时早已排空，
+        // 立即收敛，否则等输出任务在排空时收敛。
+        ui_arbiter_.EndProducing(generation);
+        {
+            std::lock_guard<std::mutex> lock(audio_queue_mutex_);
+            if (IsPlaybackDrainedLocked()) {
+                ui_arbiter_.OnPlaybackDrained();
+            }
+        }
     }
 }
 
@@ -993,12 +1000,15 @@ bool AudioService::IsPlaybackDrainedLocked() const {
 }
 
 bool AudioService::MarkPlaybackDrainedLocked() {
-    if (!IsPlaybackDrainedLocked() || playback_drained_notified_) {
+    if (!IsPlaybackDrainedLocked()) {
+        return false;
+    }
+    // 每次排空都尝试收敛本地音效占用：生产可能晚于排空结束，靠这里兜住。
+    ui_arbiter_.OnPlaybackDrained();
+    if (playback_drained_notified_) {
         return false;
     }
     playback_drained_notified_ = true;
-    // 只有生产结束且真正排空，才收敛本地音效占用（“暂时无帧”不算结束）。
-    ui_arbiter_.OnPlaybackDrained();
     return true;
 }
 

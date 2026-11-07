@@ -50,8 +50,12 @@ public:
                active_.load(std::memory_order_acquire);
     }
 
-    // 生产（解复用 + 入队）结束。
-    void SetProducing(bool producing) { producing_.store(producing, std::memory_order_release); }
+    // 生产（解复用 + 入队）结束，须带令牌：旧段迟到地结束不得清掉新段状态。
+    void EndProducing(uint32_t generation) {
+        if (generation != 0 && generation_.load(std::memory_order_acquire) == generation) {
+            producing_.store(false, std::memory_order_release);
+        }
+    }
     bool Producing() const { return producing_.load(std::memory_order_acquire); }
     bool Active() const { return active_.load(std::memory_order_acquire); }
 

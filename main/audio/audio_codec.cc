@@ -28,11 +28,13 @@ bool AudioCodec::InputData(std::vector<int16_t>& data) {
 
 void AudioCodec::Start() {
     Settings settings("audio", false);
-    // -1 哨兵：区分“从未保存过”与“显式保存了 0（静音）”。
-    // 保存值 0 是合法静音，不得在重启时被抬回默认值。
-    output_volume_ = settings.GetInt("output_volume", -1);
-    if (output_volume_ < 0) {
-        ESP_LOGW(TAG, "No saved output volume, setting to default (10)");
+    // -1 哨兵：区分「从未保存过」与「显式保存了 0（静音）」。
+    // 显式 0 尊重为静音；从未保存时保留板型默认值，只有默认异常才回退 10。
+    const int saved = settings.GetInt("output_volume", -1);
+    if (saved >= 0) {
+        output_volume_ = saved;
+    } else if (output_volume_ <= 0) {
+        ESP_LOGW(TAG, "No saved output volume and board default invalid, falling back to 10");
         output_volume_ = 10;
     }
 
