@@ -3,28 +3,14 @@
 #include <cstddef>
 #include <cstdint>
 
-// 素材由 main/assets/common/*.ogg 经 IDF EMBED_FILES 内嵌；
-// 符号名带相对路径：_binary_assets_common_<文件名>_ogg_start。
-#define XFY_TOUCH_CLIP(name)                                                     \
-    extern const uint8_t name##_start[] asm("_binary_assets_common_" #name "_ogg_start"); \
-    extern const uint8_t name##_end[] asm("_binary_assets_common_" #name "_ogg_end");
-
-XFY_TOUCH_CLIP(touch_contact_xiaohe)
-XFY_TOUCH_CLIP(touch_double_xiaohe)
-XFY_TOUCH_CLIP(touch_long_xiaohe)
-XFY_TOUCH_CLIP(touch_swipe_xiaohe)
-XFY_TOUCH_CLIP(touch_contact_yunzhou)
-XFY_TOUCH_CLIP(touch_double_yunzhou)
-XFY_TOUCH_CLIP(touch_long_yunzhou)
-XFY_TOUCH_CLIP(touch_swipe_yunzhou)
-
-#undef XFY_TOUCH_CLIP
+#include "../../../assets/touch_clips/touch_clips.h"
 
 namespace lckfb_touch {
 namespace {
 
-std::string_view MakeClip(const uint8_t* start, const uint8_t* end) {
-    return {reinterpret_cast<const char*>(start), static_cast<size_t>(end - start)};
+template <std::size_t N>
+std::string_view MakeClip(const std::uint8_t (&data)[N]) {
+    return {reinterpret_cast<const char*>(data), N};
 }
 
 }  // namespace
@@ -73,13 +59,13 @@ std::string_view ResolveSoundClip(TouchSound sound, bool use_yunzhou) {
     if (use_yunzhou) {
         switch (sound) {
             case TouchSound::kContact:
-                return MakeClip(touch_contact_yunzhou_start, touch_contact_yunzhou_end);
+                return MakeClip(clips::kTouchContactYunzhou);
             case TouchSound::kDoubleTap:
-                return MakeClip(touch_double_yunzhou_start, touch_double_yunzhou_end);
+                return MakeClip(clips::kTouchDoubleYunzhou);
             case TouchSound::kLongPress:
-                return MakeClip(touch_long_yunzhou_start, touch_long_yunzhou_end);
+                return MakeClip(clips::kTouchLongYunzhou);
             case TouchSound::kSwipe:
-                return MakeClip(touch_swipe_yunzhou_start, touch_swipe_yunzhou_end);
+                return MakeClip(clips::kTouchSwipeYunzhou);
             case TouchSound::kNone:
             default:
                 return {};
@@ -87,13 +73,13 @@ std::string_view ResolveSoundClip(TouchSound sound, bool use_yunzhou) {
     }
     switch (sound) {
         case TouchSound::kContact:
-            return MakeClip(touch_contact_xiaohe_start, touch_contact_xiaohe_end);
+            return MakeClip(clips::kTouchContactXiaohe);
         case TouchSound::kDoubleTap:
-            return MakeClip(touch_double_xiaohe_start, touch_double_xiaohe_end);
+            return MakeClip(clips::kTouchDoubleXiaohe);
         case TouchSound::kLongPress:
-            return MakeClip(touch_long_xiaohe_start, touch_long_xiaohe_end);
+            return MakeClip(clips::kTouchLongXiaohe);
         case TouchSound::kSwipe:
-            return MakeClip(touch_swipe_xiaohe_start, touch_swipe_xiaohe_end);
+            return MakeClip(clips::kTouchSwipeXiaohe);
         case TouchSound::kNone:
         default:
             return {};
