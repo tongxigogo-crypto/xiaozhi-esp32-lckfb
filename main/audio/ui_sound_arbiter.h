@@ -40,8 +40,9 @@ public:
         if (!active_.compare_exchange_strong(expected, true)) {
             return 0;
         }
-        producing_.store(true, std::memory_order_release);
-        return generation_.fetch_add(1, std::memory_order_acq_rel) + 1;
+        const uint32_t gen = generation_.fetch_add(1, std::memory_order_acq_rel) + 1;
+        producing_gen_.store(gen, std::memory_order_release);
+        return gen;
     }
 
     // 代次是否仍然有效（生产者每包入队前询问）。
@@ -50,13 +51,16 @@ public:
                active_.load(std::memory_order_acquire);
     }
 
-    // 生产（解复用 + 入队）结束，须带令牌：旧段迟到地结束不得清掉新段状态。
+    // 生产（解复用 + 入队）结束，须带令牌：用 CAS 原子清除，
+    // 旧段迟到的结束不可能清掉新段的生产状态（无“检查-写入”竞态窗口）。
     void EndProducing(uint32_t generation) {
-        if (generation != 0 && generation_.load(std::memory_order_acquire) == generation) {
-            producing_.store(false, std::memory_order_release);
+        if (generation == 0) {
+            return;
         }
+        uint32_t expected = generation;
+        producing_gen_.compare_exchange_strong(expected, 0, std::memory_order_acq_rel);
     }
-    bool Producing() const { return producing_.load(std::memory_order_acquire); }
+    bool Producing() const { return producing_gen_.load(std::memory_order_acquire) != 0; }
     bool Active() const { return active_.load(std::memory_order_acquire); }
 
     // TTS 包入站：若本地音效占用中，作废并返回 true（需要清队列）。
@@ -80,7 +84,7 @@ public:
     // 作废在途：令牌 +1，生产与占用同时清零。
     void Cancel() {
         generation_.fetch_add(1, std::memory_order_acq_rel);
-        producing_.store(false, std::memory_order_release);
+        producing_gen_.store(0, std::memory_order_release);
         active_.store(false, std::memory_order_release);
     }
 
@@ -88,6 +92,7 @@ private:
     std::atomic<bool> muted_{false};
     std::atomic<bool> tts_busy_{false};
     std::atomic<bool> active_{false};
-    std::atomic<bool> producing_{false};
+    // 正在生产的段代次；0 表示无生产。配合 CAS 实现原子“结束”。
+    std::atomic<uint32_t> producing_gen_{0};
     std::atomic<uint32_t> generation_{0};
 };

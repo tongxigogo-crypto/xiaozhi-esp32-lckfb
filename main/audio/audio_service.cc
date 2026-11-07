@@ -926,6 +926,7 @@ void AudioService::UiSoundTask() {
             ui_request_pending_ = false;
         }
         if (ogg.empty() || !ui_arbiter_.IsCurrent(generation)) {
+            std::lock_guard<std::mutex> lock(audio_queue_mutex_);
             ui_arbiter_.EndProducing(generation);
             continue;
         }
@@ -950,11 +951,10 @@ void AudioService::UiSoundTask() {
         });
         demuxer->Reset();
         demuxer->Process(reinterpret_cast<const uint8_t*>(ogg.data()), ogg.size());
-        // 生产结束（带令牌，旧段迟到不得影响新段）。若此时早已排空，
-        // 立即收敛，否则等输出任务在排空时收敛。
-        ui_arbiter_.EndProducing(generation);
+        // 令牌结束与排空收尾在同一锁内完成，消除“检查-写入”之间的抢占窗口。
         {
             std::lock_guard<std::mutex> lock(audio_queue_mutex_);
+            ui_arbiter_.EndProducing(generation);
             if (IsPlaybackDrainedLocked()) {
                 ui_arbiter_.OnPlaybackDrained();
             }

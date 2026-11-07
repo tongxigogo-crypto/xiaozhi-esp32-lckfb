@@ -31,6 +31,7 @@ class UiSoundArbiterRunnerTest(unittest.TestCase):
                     "-Wall",
                     "-Wextra",
                     "-Werror",
+                    "-pthread",
                     str(TEST_SOURCE),
                     "-o",
                     str(executable),

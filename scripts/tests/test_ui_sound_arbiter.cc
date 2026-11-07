@@ -1,4 +1,6 @@
+#include <atomic>
 #include <cassert>
+#include <thread>
 
 #include "../../main/audio/ui_sound_arbiter.h"
 
@@ -57,6 +59,32 @@ int main() {
 
     // 6. 已有在途时不允许再起一段。
     assert(arbiter.TryStart() == 0);
+
+    // 7. 并发回归：旧生产者在取消后迟到结束，不得清掉新段的生产状态。
+    // 受控双线程，多轮压测：TryStart 在子线程、Cancel+TryStart 在主线程，
+    // 旧段 EndProducing(old_gen) 必须 CAS 失败，新段 producing 保持不变。
+    for (int i = 0; i < 5000; ++i) {
+        UiSoundArbiter race;
+        std::atomic<uint32_t> old_gen{0};
+        std::atomic<bool> ready{false};
+        std::thread producer([&]() {
+            old_gen.store(race.TryStart(), std::memory_order_release);
+            ready.store(true, std::memory_order_release);
+            // 模拟“生产结束”发生在取消之后。
+            while (ready.load(std::memory_order_acquire)) {
+            }
+            race.EndProducing(old_gen.load(std::memory_order_relaxed));
+        });
+        while (!ready.load(std::memory_order_acquire)) {
+        }
+        race.Cancel();
+        const uint32_t new_gen = race.TryStart();
+        assert(new_gen != 0);
+        ready.store(false, std::memory_order_release);
+        producer.join();
+        assert(race.IsCurrent(new_gen));
+        assert(race.Producing());
+    }
 
     return 0;
 }
