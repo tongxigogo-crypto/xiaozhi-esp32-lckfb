@@ -12,7 +12,7 @@
 | 固件现役分支 | `codex/2.5.7-https` = `9c2c99d`，本地与 fork 一致 | `git rev-parse`、`git push` |
 | 上一版（回滚用） | 2.5.6 `c46a91d`（Actions `42139132026`），产物在 `outputs/2.5.6-completion/artifact-c46a91d`；档案 Obsidian `50-小肥鱼/03-2.5.6-交付档案.md` | `latest-release.json` |
 | 产物 | 2.5.7 用 `outputs/2.5.7-https/artifact-9c2c99d/xiaozhi-lckfb-lichuang-dev/`：app `815be949…`、assets `fd7a3d38…`（与 2.5.6 同一份）。旧混版产物仍在 `.archive-20261106/`，**勿用** | `sha256sums.txt` |
-| 工单2候选（未烧） | `feat/2.5.8-touch-wo2` @ `3917fa4`（首轮 `dd1134d` 已按审查返修），Actions `42376044520` success；app 2,700,960 B `3d60d821…`，assets 与 2.5.7 相同。交付说明 `10-交付与验收/工单2-触摸反馈交付-v1.1-2026-11-07.md`。**未烧录、未实机验收** | `flash-args.txt` |
+| 工单2候选（未烧） | `feat/2.5.8-touch-wo2` @ `1dea143`（`dd1134d`/`3917fa4` 两轮已作废），Actions `42378269949` success；app 2,701,200 B `1646884e…`，assets 与 2.5.7 相同。交付说明 `10-交付与验收/工单2-触摸反馈交付-v1.2-2026-11-07.md`。**未烧录、未实机验收** | `flash-args.txt` |
 | 回滚 | 2.5.6 `c46a91d` 成套 app + assets（`outputs/2.5.6-completion/artifact-c46a91d`）；2.5.5 / `96fada8` 的 16MiB 整片私密备份只作应急 | 2.5.6 验收报告 |
 | 服务端运行 | `~/Services/xiaofeiyu/current` → `releases/server-8ce6677`（11-07 01:20 起），LaunchAgent `com.xiaofeiyu.server`；frpc 常驻（`com.xiaofeiyu.frpc`）。回滚：`current` 指回 `releases/server-d9105f3`（记忆仍读新目录前需先设 `XFY_MEMORY_DIR`，否则旧版会写回知识库）后 `launchctl kickstart -k gui/$(id -u)/com.xiaofeiyu.server`。**注意**：各版本共用的 `.venv` 实体在 `releases/server-fbf654b/` 里，该目录不能删 | `readlink`、`launchctl list` |
 | 服务端源码 | `runtime/xiaozhi-esp32-server`，分支 `codex/2.5.6-emotion`，HEAD = 部署 `8ce6677`。`origin` 是官方上游，推送地址已设为 `DISABLED`（只拉不推） | `git log` |
