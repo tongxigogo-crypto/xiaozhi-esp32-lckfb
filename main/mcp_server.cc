@@ -55,10 +55,7 @@ void McpServer::AddCommonTools() {
             PropertyList({Property("volume", kPropertyTypeInteger, 0, 100)}),
             [&board](const PropertyList& properties) -> ReturnValue {
                 auto codec = board.GetAudioCodec();
-                const int volume = properties["volume"].value<int>();
-                codec->SetOutputVolume(volume);
-                // 真实静音状态接到本地音效闸门：0 即静音，并立刻撤销在途播放。
-                Application::GetInstance().GetAudioService().SetUiSoundMuted(volume == 0);
+                codec->SetOutputVolume(properties["volume"].value<int>());
                 return true;
             });
 

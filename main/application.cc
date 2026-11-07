@@ -123,8 +123,6 @@ void Application::Initialize() {
     auto codec = board.GetAudioCodec();
     audio_service_.Initialize(codec);
     audio_service_.Start();
-    // 重启/重连后按当前实际音量恢复静音状态：0 即静音，本地音效不得绕过。
-    audio_service_.SetUiSoundMuted(codec != nullptr && codec->output_volume() == 0);
     ESP_LOGI(TAG, "After board/audio init");
     SystemInfo::PrintHeapStats();
 

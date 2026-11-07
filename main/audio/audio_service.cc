@@ -347,8 +347,10 @@ void AudioService::AudioOutputTask() {
 
         auto task = std::move(audio_playback_queue_.front());
         audio_playback_queue_.pop_front();
-        if (task.is_ui_sound && task.ui_generation != ui_generation_.load()) {
-            // 已作废的本地音效 PCM：输出前丢弃，不写进喇叭。
+        if (task.is_ui_sound &&
+            (task.ui_generation != ui_generation_.load() || ui_sound_muted_.load() ||
+             codec_->output_volume() == 0)) {
+            // 已作废或已被静音的本地音效 PCM：输出前丢弃，不写进喇叭。
             audio_queue_cv_.notify_all();
             continue;
         }
@@ -838,7 +840,9 @@ void AudioService::CancelUiSound() {
 }
 
 bool AudioService::PlayUiSound(const std::string_view& ogg) {
-    if (ogg.empty() || codec_ == nullptr || ui_sound_muted_.load()) {
+    // 静音判定读设备的真实音量（0 即静音），不依赖额外的同步调用。
+    if (ogg.empty() || codec_ == nullptr || ui_sound_muted_.load() ||
+        codec_->output_volume() == 0) {
         return false;
     }
     {
