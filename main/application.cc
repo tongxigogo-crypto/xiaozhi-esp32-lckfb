@@ -1063,6 +1063,8 @@ void Application::ContinueWakeWordInvoke(const std::string& wake_word) {
 
 void Application::HandleStateChangedEvent() {
     DeviceState new_state = state_machine_.GetState();
+    // TTS 会话级忙信号：覆盖首包未到、包间空隙，本地音效不得抢入。
+    audio_service_.SetTtsBusy(new_state == kDeviceStateSpeaking);
     clock_ticks_ = 0;
     // Any state change invalidates a pending deferred listening start;
     // the Listening case below re-arms it when needed.

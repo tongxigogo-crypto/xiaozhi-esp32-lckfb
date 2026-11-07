@@ -23,6 +23,7 @@
 #include "audio_debugger.h"
 #include "audio_engine.h"
 #include "fixed_queue.h"
+#include "ui_sound_arbiter.h"
 #include "ogg_demuxer.h"
 #include "protocol.h"
 
@@ -152,8 +153,10 @@ public:
     // 立即返回，解复用与入队交给独立任务，调用方（触摸线程）不被阻塞。
     bool PlayUiSound(const std::string_view& sound);
     void SetUiSoundMuted(bool muted);
-    bool IsUiSoundMuted() const { return ui_sound_muted_.load(); }
-    bool IsUiSoundActive() const { return ui_active_generation_.load() != 0; }
+    bool IsUiSoundMuted() const { return ui_arbiter_.Muted(); }
+    bool IsUiSoundActive() const { return ui_arbiter_.Active(); }
+    // TTS 会话级忙信号：进入 speaking 置真、离开置假；本地音效只在其间之外准入。
+    void SetTtsBusy(bool busy);
     // 立即撤销本地短声音：停止生产、清空待解码与已解码 PCM。
     void CancelUiSound();
     bool ReadAudioData(std::vector<int16_t>& data, int sample_rate, int samples);
@@ -211,11 +214,8 @@ private:
 
     bool audio_engine_initialized_ = false;
     bool voice_detected_ = false;
-    // 本地触摸短声音：整段播放持有一个代次令牌；TTS 抢占后令牌作废，
-    // 生产者停止、待解码帧与已解码 PCM 一起丢弃。
-    std::atomic<bool> ui_sound_muted_{false};
-    std::atomic<uint32_t> ui_generation_{0};         // 每段音效递增
-    std::atomic<uint32_t> ui_active_generation_{0};  // 0 = 当前没有本地音效
+    // 本地触摸短声音的播放权仲裁（代次令牌 / TTS 会话 / 静音）。
+    UiSoundArbiter ui_arbiter_;
     std::string ui_request_ogg_;
     uint32_t ui_request_generation_ = 0;
     bool ui_request_pending_ = false;
@@ -238,9 +238,6 @@ private:
     void UiSoundTask();
     // UI 帧入队：等待空间时同时监听代次作废，抢占后立刻返回 false。
     bool PushUiPacketToDecodeQueue(std::unique_ptr<AudioStreamPacket> packet, uint32_t generation);
-    bool IsUiGenerationCurrent(uint32_t generation) const {
-        return generation != 0 && ui_generation_.load() == generation;
-    }
     void PushTaskToEncodeQueue(AudioTaskType type, std::vector<int16_t>&& pcm);
     bool InitializeAudioEngine();
     void SetDecodeSampleRate(int sample_rate, int frame_duration);

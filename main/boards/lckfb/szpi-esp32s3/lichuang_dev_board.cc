@@ -31,6 +31,7 @@
 #include "touch_gesture.h"
 #include "touch_feedback.h"
 
+#include <atomic>
 #include <cstdlib>
 #include <string_view>
 #include <esp_log.h>
@@ -95,7 +96,7 @@ private:
     Pca9557* pca9557_;
     Esp32Camera* camera_;
     PressToTalkMcpTool* press_to_talk_tool_ = nullptr;
-    bool use_yunzhou_voice_ = false;  // 本地触摸音效音色：false=小何，true=云舟 2.0
+    std::atomic<bool> use_yunzhou_voice_{false};  // 本地触摸音效音色：false=小何，true=云舟 2.0
     esp_lcd_touch_handle_t touch_ = nullptr;
 
     void InitializeI2c() {
@@ -276,8 +277,10 @@ private:
         }
 
         if (feedback.sound != lckfb_touch::TouchSound::kNone) {
+            // 读取一次快照，避免与 MCP 任务对同一 bool 并发读写。
+            const bool use_yunzhou = use_yunzhou_voice_.load();
             const std::string_view clip =
-                lckfb_touch::ResolveSoundClip(feedback.sound, use_yunzhou_voice_);
+                lckfb_touch::ResolveSoundClip(feedback.sound, use_yunzhou);
             const bool played = !clip.empty() && Application::GetInstance().PlayUiSound(clip);
             ESP_LOGD(TAG, "touch sound %s -> %s", lckfb_touch::TouchSoundName(feedback.sound),
                      played ? "played" : "dropped(visual only)");

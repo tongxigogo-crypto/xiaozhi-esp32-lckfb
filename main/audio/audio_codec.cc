@@ -28,9 +28,11 @@ bool AudioCodec::InputData(std::vector<int16_t>& data) {
 
 void AudioCodec::Start() {
     Settings settings("audio", false);
-    output_volume_ = settings.GetInt("output_volume", output_volume_);
-    if (output_volume_ <= 0) {
-        ESP_LOGW(TAG, "Output volume value (%d) is too small, setting to default (10)", output_volume_);
+    // -1 哨兵：区分“从未保存过”与“显式保存了 0（静音）”。
+    // 保存值 0 是合法静音，不得在重启时被抬回默认值。
+    output_volume_ = settings.GetInt("output_volume", -1);
+    if (output_volume_ < 0) {
+        ESP_LOGW(TAG, "No saved output volume, setting to default (10)");
         output_volume_ = 10;
     }
 
