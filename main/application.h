@@ -117,6 +117,8 @@ public:
     void SetAecMode(AecMode mode);
     AecMode GetAecMode() const { return aec_mode_; }
     void PlaySound(const std::string_view& sound);
+    // 本地触摸反馈音：TTS 占线或静音时返回 false（工单2 §6.4）。
+    bool PlayUiSound(const std::string_view& sound);
     AudioService& GetAudioService() { return audio_service_; }
     
     /**

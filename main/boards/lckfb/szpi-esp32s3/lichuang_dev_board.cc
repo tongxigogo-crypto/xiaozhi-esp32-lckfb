@@ -32,6 +32,7 @@
 #include "touch_feedback.h"
 
 #include <cstdlib>
+#include <string_view>
 #include <esp_log.h>
 #include <esp_lcd_panel_vendor.h>
 #include <esp_lcd_touch.h>
@@ -263,8 +264,11 @@ private:
     void ApplyGesture(lckfb_touch::Gesture gesture, bool second_tap = false) {
         const auto feedback = lckfb_touch::ResolveFeedback(gesture, second_tap);
         if (feedback.sound != lckfb_touch::TouchSound::kNone) {
-            // 素材未接入：先记录请求，出声音留给双音色资源那一步（工单2 §6.3）。
-            ESP_LOGD(TAG, "touch sound request: %s", lckfb_touch::TouchSoundName(feedback.sound));
+            // 音色切换接口冻结前，板端固定用小何那一套（云舟 2.0 素材已随包内嵌）。
+            const std::string_view clip = lckfb_touch::ResolveSoundClip(feedback.sound, false);
+            const bool played = !clip.empty() && Application::GetInstance().PlayUiSound(clip);
+            ESP_LOGD(TAG, "touch sound %s -> %s", lckfb_touch::TouchSoundName(feedback.sound),
+                     played ? "played" : "dropped(visual only)");
         }
         if (feedback.emotion == nullptr) {
             return;
