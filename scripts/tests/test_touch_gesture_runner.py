@@ -8,6 +8,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 TEST_SOURCE = ROOT / "scripts" / "tests" / "touch_gesture_test.cc"
+FEEDBACK_SOURCE = (
+    ROOT / "main" / "boards" / "lckfb" / "szpi-esp32s3" / "touch_feedback.cc"
+)
 
 
 class TouchGestureRunnerTest(unittest.TestCase):
@@ -30,6 +33,7 @@ class TouchGestureRunnerTest(unittest.TestCase):
                 "-Wextra",
                 "-Werror",
                 str(TEST_SOURCE),
+                str(FEEDBACK_SOURCE),
                 "-o",
                 str(executable),
             ]

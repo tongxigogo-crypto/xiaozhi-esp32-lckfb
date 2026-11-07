@@ -10,10 +10,18 @@ namespace lckfb_touch {
 
 enum class Gesture {
     kNone,
+    // 物理手势 → 枚举名的历史对应关系（2026-11-07 工单2）：
+    //   kHappy      = 单击确认
+    //   kSurprised  = 双击确认
+    //   kAnnoyed    = 长按确认
+    //   kLaugh      = 横划确认
+    // 枚举名是历史包袱，含义以本注释和 trigger 事件为准；表情映射放在板级。
     kHappy,
     kSurprised,
     kAnnoyed,
     kLaugh,
+    // 手指刚接触屏幕（未判定手势）。用于按下瞬间的即时反馈。
+    kContact,
 };
 
 struct Sample {
@@ -36,8 +44,9 @@ public:
     static constexpr int kSwipeMaxVerticalPx = 40;
     static constexpr int kReleaseDebounceSamples = 2;
 
-    explicit Recognizer(std::function<void(Gesture)> on_gesture)
-        : on_gesture_(std::move(on_gesture)) {}
+    explicit Recognizer(std::function<void(Gesture)> on_gesture,
+                        std::function<void(bool)> on_contact = nullptr)
+        : on_gesture_(std::move(on_gesture)), on_contact_(std::move(on_contact)) {}
 
     void Reset() {
         pressed_ = false;
@@ -145,6 +154,14 @@ private:
         if (!second_tap_) {
             waiting_for_double_ = false;
         }
+        // 按下瞬间的即时反馈：不等 500ms 双击窗口。第二次按下同样通知，
+        // 由调用方决定是否重复播放声音（工单2 要求不叠加首触声音）。
+        // 注册了 on_contact 时只走它，避免同一次按下被投递两次。
+        if (on_contact_) {
+            on_contact_(second_tap_);
+        } else {
+            Emit(Gesture::kContact);
+        }
     }
 
     void UpdateDisplacement(const Sample& sample) {
@@ -193,6 +210,7 @@ private:
     }
 
     std::function<void(Gesture)> on_gesture_;
+    std::function<void(bool)> on_contact_;
     bool pressed_ = false;
     bool release_candidate_ = false;
     int release_samples_ = 0;

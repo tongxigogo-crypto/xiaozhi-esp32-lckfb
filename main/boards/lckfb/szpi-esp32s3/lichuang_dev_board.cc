@@ -29,6 +29,7 @@
 #include "mcp_server.h"
 #include "press_to_talk_mcp_tool.h"
 #include "touch_gesture.h"
+#include "touch_feedback.h"
 
 #include <cstdlib>
 #include <esp_log.h>
@@ -259,24 +260,16 @@ private:
         }
     }
 
-    void ApplyGesture(lckfb_touch::Gesture gesture) {
-        const char* emotion = nullptr;
-        switch (gesture) {
-            case lckfb_touch::Gesture::kHappy:
-                emotion = "happy";
-                break;
-            case lckfb_touch::Gesture::kSurprised:
-                emotion = "surprised";
-                break;
-            case lckfb_touch::Gesture::kAnnoyed:
-                emotion = "annoyed";
-                break;
-            case lckfb_touch::Gesture::kLaugh:
-                emotion = "laugh";
-                break;
-            case lckfb_touch::Gesture::kNone:
-                return;
+    void ApplyGesture(lckfb_touch::Gesture gesture, bool second_tap = false) {
+        const auto feedback = lckfb_touch::ResolveFeedback(gesture, second_tap);
+        if (feedback.sound != lckfb_touch::TouchSound::kNone) {
+            // 素材未接入：先记录请求，出声音留给双音色资源那一步（工单2 §6.3）。
+            ESP_LOGD(TAG, "touch sound request: %s", lckfb_touch::TouchSoundName(feedback.sound));
         }
+        if (feedback.emotion == nullptr) {
+            return;
+        }
+        const char* emotion = feedback.emotion;
 
         // Keep display mutations on the application task.
         Application::GetInstance().Schedule([this, emotion]() {
@@ -288,7 +281,8 @@ private:
 
     void TouchGestureLoop() {
         lckfb_touch::Recognizer recognizer(
-            [this](lckfb_touch::Gesture gesture) { ApplyGesture(gesture); });
+            [this](lckfb_touch::Gesture gesture) { ApplyGesture(gesture); },
+            [this](bool second_tap) { ApplyGesture(lckfb_touch::Gesture::kContact, second_tap); });
         uint16_t x = 0;
         uint16_t y = 0;
         uint16_t strength = 0;

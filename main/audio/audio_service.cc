@@ -606,8 +606,17 @@ void AudioService::PushTaskToEncodeQueue(AudioTaskType type, std::vector<int16_t
     }
 }
 
-bool AudioService::PushPacketToDecodeQueue(std::unique_ptr<AudioStreamPacket> packet, bool wait) {
+bool AudioService::PushPacketToDecodeQueue(std::unique_ptr<AudioStreamPacket> packet, bool wait,
+                                           bool is_ui_sound) {
     std::unique_lock<std::mutex> lock(audio_queue_mutex_);
+    if (!is_ui_sound && ui_sound_active_.load()) {
+        // 云端 TTS 抢回通道：丢弃尚未播完的本地触摸短声音，避免叠播。
+        // UI 声音只在通道空闲时启动，因此此刻队列里只可能是 UI 帧。
+        audio_decode_queue_.clear();
+        ui_sound_active_.store(false);
+        ++playback_generation_;
+        audio_queue_cv_.notify_all();
+    }
     const uint32_t generation = playback_generation_;
     if (audio_decode_queue_.size() >= MAX_DECODE_PACKETS_IN_QUEUE) {
         if (wait) {
@@ -785,8 +794,48 @@ void AudioService::PlaySound(const std::string_view& ogg) {
     demuxer->Process(buf, size);
 }
 
-bool AudioService::IsIdle() {
-    std::lock_guard<std::mutex> lock(audio_queue_mutex_);
+void AudioService::SetUiSoundMuted(bool muted) { ui_sound_muted_.store(muted); }
+
+bool AudioService::PlayUiSound(const std::string_view& ogg) {
+    if (ogg.empty() || codec_ == nullptr || ui_sound_muted_.load()) {
+        return false;
+    }
+    {
+        std::lock_guard<std::mutex> lock(audio_queue_mutex_);
+        // 云端 TTS 正在解码、排队或出声时不抢通道，只保留视觉反馈。
+        if (!IsPlaybackDrainedLocked()) {
+            return false;
+        }
+        ui_sound_active_.store(true);
+    }
+
+    if (!codec_->output_enabled()) {
+        esp_timer_stop(audio_power_timer_);
+        esp_timer_start_periodic(audio_power_timer_, AUDIO_POWER_CHECK_INTERVAL_MS * 1000);
+        codec_->EnableOutput(true);
+    }
+
+    const auto* buf = reinterpret_cast<const uint8_t*>(ogg.data());
+    size_t size = ogg.size();
+
+    auto demuxer = std::make_unique<OggDemuxer>();
+    demuxer->OnPacket(
+        [this](const uint8_t* data, int sample_rate, int frame_duration_ms, size_t packet_size) {
+            auto packet = std::make_unique<AudioStreamPacket>();
+            packet->sample_rate = sample_rate;
+            packet->frame_duration = frame_duration_ms;
+            packet->payload.resize(packet_size);
+            std::memcpy(packet->payload.data(), data, packet_size);
+            if (!PushPacketToDecodeQueue(std::move(packet), true, true)) {
+                ui_sound_active_.store(false);
+            }
+        });
+    demuxer->Reset();
+    demuxer->Process(buf, size);
+    return true;
+}
+
+bool AudioService::IsIdle() {    std::lock_guard<std::mutex> lock(audio_queue_mutex_);
     return audio_encode_queue_.empty() && IsPlaybackDrainedLocked() && audio_testing_queue_.empty();
 }
 
@@ -827,6 +876,7 @@ bool AudioService::MarkPlaybackDrainedLocked() {
         return false;
     }
     playback_drained_notified_ = true;
+    ui_sound_active_.store(false);
     return true;
 }
 

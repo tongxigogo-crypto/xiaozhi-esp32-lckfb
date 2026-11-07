@@ -141,9 +141,15 @@ public:
 
     void SetCallbacks(AudioServiceCallbacks& callbacks);
 
-    bool PushPacketToDecodeQueue(std::unique_ptr<AudioStreamPacket> packet, bool wait = false);
+    bool PushPacketToDecodeQueue(std::unique_ptr<AudioStreamPacket> packet, bool wait = false,
+                                 bool is_ui_sound = false);
     std::unique_ptr<AudioStreamPacket> PopPacketFromSendQueue();
     void PlaySound(const std::string_view& sound);
+    // 本地 UI 短声音（触摸反馈）：只在没有云端 TTS 播放/排队时接受。
+    // 与 TTS 共用解码链路；TTS 到来时丢弃尚未播完的 UI 帧，避免叠播（工单2 §6.4）。
+    bool PlayUiSound(const std::string_view& sound);
+    void SetUiSoundMuted(bool muted);
+    bool IsUiSoundActive() const { return ui_sound_active_.load(); }
     bool ReadAudioData(std::vector<int16_t>& data, int sample_rate, int samples);
     void ResetDecoder();
     void SetModelsList(srmodel_list_t* models_list);
@@ -199,6 +205,9 @@ private:
 
     bool audio_engine_initialized_ = false;
     bool voice_detected_ = false;
+    // 本地触摸短声音：非静音且无 TTS 时才会置位；TTS 抢回通道时清零。
+    std::atomic<bool> ui_sound_active_{false};
+    std::atomic<bool> ui_sound_muted_{false};
 #if CONFIG_USE_DEVICE_AEC
     bool device_aec_enabled_ = true;
 #else
