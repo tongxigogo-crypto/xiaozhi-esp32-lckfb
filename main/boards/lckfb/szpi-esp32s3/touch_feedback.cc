@@ -3,10 +3,11 @@
 #include <cstddef>
 #include <cstdint>
 
-// 素材由 main/assets/common/*.ogg 经 IDF EMBED_FILES 内嵌，符号名为 _binary_<文件名>_ogg_start。
+// 素材由 main/assets/common/*.ogg 经 IDF EMBED_FILES 内嵌；
+// 符号名带相对路径：_binary_assets_common_<文件名>_ogg_start。
 #define XFY_TOUCH_CLIP(name)                                                     \
-    extern const uint8_t name##_start[] asm("_binary_" #name "_ogg_start");       \
-    extern const uint8_t name##_end[] asm("_binary_" #name "_ogg_end");
+    extern const uint8_t name##_start[] asm("_binary_assets_common_" #name "_ogg_start"); \
+    extern const uint8_t name##_end[] asm("_binary_assets_common_" #name "_ogg_end");
 
 XFY_TOUCH_CLIP(touch_contact_xiaohe)
 XFY_TOUCH_CLIP(touch_double_xiaohe)
