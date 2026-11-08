@@ -95,3 +95,154 @@ Timestamp:
   "Owner": "SOL",
   "Timestamp": "2026-11-08T19:40:21+08:00"
 }
+
+
+## DEC-NET-BUILD-AUTH-20261108
+
+{
+  "Decision ID": "DEC-NET-BUILD-AUTH-20261108",
+  "Related Task IDs": [
+    "NET-FIX-FW-20261108"
+  ],
+  "Related Failure IDs": [
+    "FAIL-NET-MAC-PUSH-20261108"
+  ],
+  "Decision": "Use Windows authenticatedgh/git + temporarybundle relay for candidatebuild; never transfer credentials toMac",
+  "Reason": "Mac dry-run push lacksnoninteractivecredential; Windowsalready authenticated workflow account; userapprovedcandidatecompilation",
+  "Alternatives": [
+    "retryMacunchanged rejected",
+    "copytokens rejected",
+    "Windowscredentialhelper +bundle chosen"
+  ],
+  "Final Choice": "Windowsgittemporarybare repository andbundle preservingexactSHAs; artifact-onlyworkflow",
+  "Owner": "SOL",
+  "Timestamp": "2026-11-08T19:45:51+08:00"
+}
+
+
+## DEC-NET-REMOTE-BASE-20261108
+
+{
+  "Decision ID": "DEC-NET-REMOTE-BASE-20261108",
+  "Related Task IDs": [
+    "NET-FIX-FW-20261108"
+  ],
+  "Related Failure IDs": [
+    "FAIL-NET-REMOTE-REF-20261108"
+  ],
+  "Decision": "Fetchadvertisedforkbranch50a1be5 ratherthanlocal-only468971c; buildbundleagainstverifiedcommonancestor",
+  "Reason": "GitHubAPIbranchlistingadvertises50a1be5; upload-packrejectslocal-onlydocscommit468971c",
+  "Alternatives": [
+    "retryunadvertisedSHA rejected",
+    "fetchverifiedremoteheads chosen"
+  ],
+  "Final Choice": "fetchfeat/2.5.8-touch-wo2 currentremoteSHA, preservealllocalcandidatecommitsinbundle",
+  "Owner": "SOL",
+  "Timestamp": "2026-11-08T19:46:37+08:00"
+}
+
+
+## DEC-NET-PROTOCOL-EPOCH-20261108
+
+{
+  "Decision ID": "DEC-NET-PROTOCOL-EPOCH-20261108",
+  "Related Task IDs": [
+    "NET-FIX-FW-20261108"
+  ],
+  "Related Failure IDs": [],
+  "Decision": "AllowadditiveProtocolepoch/cancelinterfaces neededtosafelyownbackgroundOpen lifecycle",
+  "Reason": "Oldcallbacksandinflightopensmustnot affectnewsession; narrowsharedinterface supportdirectlyimplementsapproveddesign",
+  "Alternatives": [
+    "unsafeapplicationrawpointerconcurrency rejected",
+    "additivecompatibilityinterface chosen"
+  ],
+  "Final Choice": "allowprotocol.h/.cc onlyneededadditions; retainlegacycallbacks/MQTTsemantics and120sbusinessidle; testbothcallbackcontracts",
+  "Owner": "SOL",
+  "Timestamp": "2026-11-08T20:10:53+08:00"
+}
+
+
+## DEC-NET-ASYNC-OWNERSHIP-20261108
+
+{
+  "Decision ID": "DEC-NET-ASYNC-OWNERSHIP-20261108",
+  "Related Task IDs": [
+    "NET-FIX-FW-20261108",
+    "NET-EXPERT-FW-20261108"
+  ],
+  "Related Failure IDs": [],
+  "Decision": "Adoptexpertmain-ownedtimer/jobretirementpattern withinapprovedrecoverybehavior",
+  "Reason": "Separateintentcancellationfromoldworkerdrain; avoidFreeRTOSC++destructorleak,pendingmanualstarvation,cancel-before-openresurrection,andstaleeventrelabelling",
+  "Alternatives": [
+    "pollingsleepoccupiesworkerslot",
+    "cancellableone-shottimer +singleidentifiednetworkjob"
+  ],
+  "Final Choice": "mainownsintent,timer,jobslot; workerownsprotocolsharedlifetime only; immutableopenidentityreservedbeforedispatch; sourceidentity/epochcheckedonconsumption",
+  "Owner": "SOL",
+  "Timestamp": "2026-11-08T20:35:40+08:00"
+}
+
+
+## DEC-NET-FW-EXPERT-TAKEOVER-20261108
+
+{
+  "Decision ID": "DEC-NET-FW-EXPERT-TAKEOVER-20261108",
+  "Related Task IDs": [
+    "NET-FIX-FW-20261108",
+    "NET-EXPERT-FW-20261108"
+  ],
+  "Related Failure IDs": [],
+  "Decision": "TransferexclusiveFWimplementationownershipfrompausedLUNA tologicalTERRAexpert forhigh-riskasynccompletion",
+  "Reason": "LUNAcheckpointconfirmsreservation API/applicationwiring, sourceepochdeliveryandmain-ownedjobretirementstillincomplete; exceptionalcross-threadTLS/FreeRTOSlifetimejudgmentrequired",
+  "Alternatives": [
+    "continueunboundedLUNA推演 rejected",
+    "rewritewholecontroller rejected",
+    "expertfinishminimalexistingcandidate chosen"
+  ],
+  "Final Choice": "ws_async_lifecycle_expertsoleFWauthor; existing100mscancellablebackoffmayremain ifjobidentity/retirementandmanualresponsivenessproven; userbehaviorunchanged; separateReviewer/QAacceptance",
+  "Supersedes In Part": "DEC-NET-ASYNC-OWNERSHIP-20261108 timerimplementationpreferenceonly",
+  "Owner": "SOL",
+  "Timestamp": "2026-11-08T20:45:26+08:00"
+}
+
+
+## DEC-NET-FW-R1-20261109
+
+{
+  "Decision ID": "DEC-NET-FW-R1-20261109",
+  "Related Task IDs": [
+    "NET-FIX-FW-20261108"
+  ],
+  "Related Failure IDs": [],
+  "Decision": "FreshTERRAauthor ws_fw_finish exclusivelyownsbounded4findingrevision; otherspaused",
+  "Reason": "Reviewfoundactualbranchregressionsnotcoveredbyinitialhostlifecyclefixture",
+  "Alternatives": [
+    "compilebrokenfreeze rejected",
+    "narrowactualbranchred-green revision chosen"
+  ],
+  "Final Choice": "separatecancelretryfromlivechannelinvalidation; explicitstopidle; manualpreserve/reopenvalidsession; AEC/upgradeteardownexactlyonce; atomic.load",
+  "Owner": "SOL",
+  "Timestamp": "2026-11-09T01:23:49+08:00"
+}
+
+
+## DEC-NET-FW-RESUME-20261109
+
+{
+  "Decision ID": "DEC-NET-FW-RESUME-20261109",
+  "Related Task IDs": [
+    "NET-FIX-FW-20261108",
+    "NET-QA-FW-20261108",
+    "NET-REVIEW-FW-20261108"
+  ],
+  "Related Failure IDs": [],
+  "Decision": "ResumeR1withfreshindependentactors afterusercontinueandprioragentusageinterruptions",
+  "Reason": "Existingcandidate/sourcebranchunchanged,SVhashesverified; FW4consolidatedfindingrevisionstillrequired",
+  "Alternatives": [
+    "reuseinterruptedunavailableagents",
+    "freshboundedexpert+separateQA/Reviewer chosen"
+  ],
+  "Final Choice": "ws_fw_finish exclusiveauthor; ws_fw_final_qa evidenceonly; ws_fw_final_review independent; no productionactions",
+  "Owner": "SOL",
+  "Timestamp": "2026-11-09T01:26:25+08:00"
+}

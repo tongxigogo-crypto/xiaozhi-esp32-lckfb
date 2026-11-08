@@ -252,3 +252,213 @@ Timestamp:
   "Record Owner": "SOL",
   "Created At": "2026-11-08T19:40:21+08:00"
 }
+
+
+## NET-DIAG-FW-20261108-READY
+
+{
+  "Event ID": "NET-DIAG-FW-20261108-READY",
+  "Task ID": "NET-DIAG-FW-20261108",
+  "From Status": "running",
+  "To Status": "ready_for_review",
+  "Actor": "SOL",
+  "Reason": "Workerdiagnosisreturned; approvedrepairdesignprepared; independentreviewduringcandidateacceptance",
+  "Evidence": [
+    "/Users/tong/CodexWorkspace/AgentBackups/xiaofeiyu/20261108T193104+0800/diagnostic-evidence.json",
+    "HANDOFF-NET-DIAG-FW-20261108"
+  ],
+  "Timestamp": "2026-11-08T19:42:10+08:00"
+}
+
+
+## NET-FIX-FW-20261108-START
+
+{
+  "Event ID": "NET-FIX-FW-20261108-START",
+  "Task ID": "NET-FIX-FW-20261108",
+  "From Status": "pending",
+  "To Status": "running",
+  "Actor": "SOL",
+  "Reason": "Userapproveddesign andindependentspec/plan advisoryPASS; delegatedLUNAimplementation",
+  "Evidence": [
+    "docs/superpowers/specs/2026-11-08-ws-recovery-design.md",
+    "docs/superpowers/plans/2026-11-08-ws-recovery.md",
+    "ws_plan_review advisoryPASS"
+  ],
+  "Timestamp": "2026-11-08T19:43:23+08:00"
+}
+
+
+## NET-QA-FW-20261108
+
+{
+  "Task ID": "NET-QA-FW-20261108",
+  "Priority": "P1",
+  "Assigned Agent": "ws_candidate_qa independentQA",
+  "Inputs": [
+    "approveddesign/plan",
+    "upcomingLUNAcandidate"
+  ],
+  "Outputs": [
+    "reproducibleisolatedtest evidence"
+  ],
+  "Verification Method": "preparefixturesnow; runsuitesonlyafterSOLready; separateReviewer",
+  "Status": "pending",
+  "Record Owner": "SOL",
+  "Created At": "2026-11-08T19:51:21+08:00"
+}
+
+
+## NET-QA-FW-20261108-START
+
+{
+  "Event ID": "NET-QA-FW-20261108-START",
+  "Task ID": "NET-QA-FW-20261108",
+  "From Status": "pending",
+  "To Status": "running",
+  "Actor": "SOL",
+  "Reason": "IndependentQA preparesisolatedtestharness concurrently; implementationnotreadyforruns",
+  "Evidence": [
+    "docs/superpowers/plans/2026-11-08-ws-recovery.md"
+  ],
+  "Timestamp": "2026-11-08T19:51:21+08:00"
+}
+
+
+## NET-REVIEW-FW-20261108
+
+{
+  "Task ID": "NET-REVIEW-FW-20261108",
+  "Priority": "P1",
+  "Assigned Agent": "ws_candidate_review independentReviewer",
+  "Inputs": [
+    "approvedspec/plan",
+    "upcomingfrozencandidate"
+  ],
+  "Outputs": [
+    "speccompliance+codequalityPASS/NEEDFIX"
+  ],
+  "Verification Method": "preparebaselinechecklist now; inspectfrozendiffandQA evidenceafterhandoff",
+  "Status": "pending",
+  "Record Owner": "SOL",
+  "Created At": "2026-11-08T20:06:55+08:00"
+}
+
+
+## NET-REVIEW-FW-20261108-START
+
+{
+  "Event ID": "NET-REVIEW-FW-20261108-START",
+  "Task ID": "NET-REVIEW-FW-20261108",
+  "From Status": "pending",
+  "To Status": "running",
+  "Actor": "SOL",
+  "Reason": "FreshindependentReviewer preparesbaselinecontext whileLUNAimplements; no interimselfapproval",
+  "Evidence": [
+    "docs/superpowers/plans/2026-11-08-ws-recovery.md"
+  ],
+  "Timestamp": "2026-11-08T20:06:55+08:00"
+}
+
+
+## NET-EXPERT-FW-20261108
+
+{
+  "Task ID": "NET-EXPERT-FW-20261108",
+  "Priority": "P1",
+  "Assigned Agent": "ws_async_lifecycle_expert (logicalTERRA; independentdefault runtime)",
+  "Inputs": [
+    "currentApplication recoveryworker/timer code",
+    "approvedspec/plan"
+  ],
+  "Outputs": [
+    "boundedasynclifetimeadvice; noimplementation"
+  ],
+  "Verification Method": "evidence-basedreview ofFreeRTOScontextdestruction, cancellablebackoff, pendingownerstate; finalcodeReview+QAvalidateadoption",
+  "Status": "pending",
+  "Record Owner": "SOL",
+  "Created At": "2026-11-08T20:30:07+08:00"
+}
+
+
+## NET-EXPERT-FW-20261108-START
+
+{
+  "Event ID": "NET-EXPERT-FW-20261108-START",
+  "Task ID": "NET-EXPERT-FW-20261108",
+  "From Status": "pending",
+  "To Status": "running",
+  "Actor": "SOL",
+  "Reason": "Exceptionalcross-threadresourceownership risks identified; boundedexpertjudgment needed; LUNAretainscodeownership",
+  "Evidence": [
+    "StartRecoveryTask/HandleRecoveryWorkerDone currentpreliminaryinspection",
+    "userapprovednonblockingcancellationdesign"
+  ],
+  "Timestamp": "2026-11-08T20:30:07+08:00"
+}
+
+
+## NET-EXPERT-FW-20261108-READY
+
+{
+  "Event ID": "NET-EXPERT-FW-20261108-READY",
+  "Task ID": "NET-EXPERT-FW-20261108",
+  "From Status": "running",
+  "To Status": "ready_for_review",
+  "Actor": "SOL",
+  "Reason": "Boundedexpertadvice delivered; adoptionwillbereviewedwithcandidate",
+  "Evidence": [
+    "HANDOFF-NET-EXPERT-FW-20261108"
+  ],
+  "Timestamp": "2026-11-08T20:35:40+08:00"
+}
+
+
+## NET-FIX-FW-20261108-R0-READY
+
+{
+  "Event ID": "NET-FIX-FW-20261108-R0-READY",
+  "Task ID": "NET-FIX-FW-20261108",
+  "From Status": "running",
+  "To Status": "ready_for_review",
+  "Actor": "SOL",
+  "Reason": "PriorTERRA sourcefrozen forindependentreview andQA",
+  "Evidence": [
+    "author2026-11-08T20:53:30+08:00handoff",
+    "qa-summary-fw-initial.json"
+  ],
+  "Timestamp": "2026-11-09T01:23:49+08:00"
+}
+
+
+## NET-FIX-FW-20261108-R1-REVISION
+
+{
+  "Event ID": "NET-FIX-FW-20261108-R1-REVISION",
+  "Task ID": "NET-FIX-FW-20261108",
+  "From Status": "ready_for_review",
+  "To Status": "running",
+  "Actor": "SOL",
+  "Reason": "IndependentReviewerNEEDFIX;bounded4findingrevision",
+  "Evidence": [
+    "REVIEW-NET-FW-20261109-R1",
+    "DEC-NET-FW-R1-20261109"
+  ],
+  "Timestamp": "2026-11-09T01:23:49+08:00"
+}
+
+
+## NET-FIX-FW-20261108-R1-READY
+
+{
+  "Event ID": "NET-FIX-FW-20261108-R1-READY",
+  "Task ID": "NET-FIX-FW-20261108",
+  "From Status": "running",
+  "To Status": "ready_for_review",
+  "Actor": "SOL",
+  "Reason": "AuthorR1frozen; draftsourcecommitforindependentQA/review/compile; notacceptedcompleted",
+  "Evidence": [
+    "HANDOFF-NET-FIX-FW-20261109-R1"
+  ],
+  "Timestamp": "2026-11-09T01:31:33+08:00"
+}

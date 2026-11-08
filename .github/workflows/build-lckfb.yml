@@ -32,6 +32,7 @@ jobs:
           python -m pip install --no-deps --target /tmp/xiaofeiyu-hostdeps esp-idf-nvs-partition-gen==0.3.0
           export PYTHONPATH="/tmp/xiaofeiyu-hostdeps"
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          python -m unittest discover -s scripts/tests -p 'test_connection_recovery*.py' -v
           python -m unittest discover -s scripts/tests -p 'test_touch_gesture_runner.py' -v
           python -m unittest discover -s scripts/tests -p 'test_ui_sound_arbiter_runner.py' -v
           python -m unittest discover -s scripts/tests -p 'test_settings_runner.py' -v
@@ -56,6 +57,46 @@ jobs:
           grep -n "CONFIG_OTA_URL" sdkconfig
           grep -n "CONFIG_MBEDTLS_HAVE_TIME_DATE" sdkconfig
           grep -n "CONFIG_MMAP_FILE_NAME_LENGTH" sdkconfig
+
+      - name: Record resolved WebSocket transport evidence
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          import re
+          import subprocess
+          from pathlib import Path
+          lock = Path("dependencies.lock")
+          lock_text = lock.read_text()
+          match = re.search(r"(?m)^  78/esp-ml307:\s*$([\s\S]*?)(?=^  \S|\Z)", lock_text)
+          assert match, "resolved esp-ml307 missing from dependency lock"
+          version = re.search(r"(?m)^    version:\s*(.+)$", match.group(1))
+          assert version, "resolved esp-ml307 version missing"
+          paths = list(Path("managed_components").glob("*esp-ml307*/src/web_socket.cc"))
+          assert len(paths) == 1, "expected exactly one compiled esp-ml307 WebSocket source"
+          source = paths[0]
+          body = source.read_text()
+          start = body.find("case 0x9:")
+          end = body.find("break;", start)
+          assert start >= 0 and end > start, "Ping handler unavailable"
+          excerpt = body[start:end + len("break;")]
+          assert "SendControlFrame(0xA," in excerpt, "resolved client does not prove automatic Pong"
+          report = {
+              "commit": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
+              "component": "78/esp-ml307",
+              "resolved_version": version.group(1).strip(),
+              "lock_sha256": hashlib.sha256(lock.read_bytes()).hexdigest(),
+              "websocket_source": str(source),
+              "websocket_source_sha256": hashlib.sha256(source.read_bytes()).hexdigest(),
+              "automatic_pong_source_confirmed": True,
+              "ping_handler_excerpt": excerpt,
+              "hardware_pong_test": "pending user-approved flashing",
+          }
+          target = Path("build/transport-evidence.json")
+          target.write_text(json.dumps(report, indent=2) + "\n")
+          print(target.read_text())
+          PY
 
       - name: Verify build outputs
         shell: bash
@@ -87,4 +128,5 @@ jobs:
             build/expression_assets.bin
             build/sha256sums.txt
             build/flash-args.txt
+            build/transport-evidence.json
           if-no-files-found: error

@@ -76,3 +76,26 @@ Timestamp:
   ],
   "Timestamp": "2026-11-08T19:40:21+08:00"
 }
+
+
+## REVIEW-NET-FW-20261109-R1
+
+{
+  "Review ID": "REVIEW-NET-FW-20261109-R1",
+  "Task ID": "NET-FIX-FW-20261108",
+  "Reviewer": "ws_candidate_review independentReviewer",
+  "Scope": "FWfullsource+CI",
+  "PASS": false,
+  "NEED FIX": true,
+  "Critical": [
+    "atomiccopycompilefailure",
+    "Togglelisteningneveridle",
+    "speaking->manualinvalidatescurrentchannel",
+    "AEC/Upgradeepochinvalidationpreventsclose"
+  ],
+  "Evidence": [
+    "ReviewerformalR1chat",
+    "actualsourcebranches; isolatedclangatomiccopyexit1"
+  ],
+  "Timestamp": "2026-11-09T01:23:49+08:00"
+}

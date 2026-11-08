@@ -27,17 +27,50 @@ void Protocol::OnIncomingJson(std::function<void(const cJSON* root)> callback) {
     on_incoming_json_ = callback;
 }
 
+void Protocol::OnIncomingJsonWithEpoch(std::function<void(uint64_t, const cJSON* root)> callback) {
+    on_incoming_json_epoch_ = callback;
+}
+
 void Protocol::OnIncomingAudio(
     std::function<void(std::unique_ptr<AudioStreamPacket> packet)> callback) {
     on_incoming_audio_ = callback;
+}
+
+void Protocol::OnIncomingAudioWithEpoch(
+    std::function<void(uint64_t, std::unique_ptr<AudioStreamPacket> packet)> callback) {
+    on_incoming_audio_epoch_ = callback;
+}
+
+uint64_t Protocol::ReserveAudioChannelOpen() {
+    const uint64_t reservation_epoch = BeginConnectionAttempt();
+    open_reservation_epoch_.store(reservation_epoch, std::memory_order_release);
+    OnAudioChannelOpenReserved(reservation_epoch);
+    return reservation_epoch;
+}
+
+void Protocol::CancelReservedAudioChannelOpen(uint64_t reservation_epoch) {
+    if (reservation_epoch == 0 ||
+        open_reservation_epoch_.load(std::memory_order_acquire) != reservation_epoch ||
+        connection_epoch() != reservation_epoch) {
+        return;
+    }
+    CancelOpenAudioChannel();
 }
 
 void Protocol::OnAudioChannelOpened(std::function<void()> callback) {
     on_audio_channel_opened_ = callback;
 }
 
+void Protocol::OnAudioChannelOpenedWithEpoch(std::function<void(uint64_t)> callback) {
+    on_audio_channel_opened_epoch_ = callback;
+}
+
 void Protocol::OnAudioChannelClosed(std::function<void()> callback) {
     on_audio_channel_closed_ = callback;
+}
+
+void Protocol::OnAudioChannelClosedWithEpoch(std::function<void(uint64_t)> callback) {
+    on_audio_channel_closed_epoch_ = callback;
 }
 
 void Protocol::OnNetworkError(std::function<void(const std::string& message)> callback) {

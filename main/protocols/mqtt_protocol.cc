@@ -39,6 +39,7 @@ MqttProtocol::MqttProtocol() {
 
 MqttProtocol::~MqttProtocol() {
     ESP_LOGI(TAG, "MqttProtocol deinit");
+    CancelOpenAudioChannel();
 
     // Mark as dead first to prevent any pending scheduled tasks from executing
     *alive_ = false;
@@ -141,8 +142,13 @@ bool MqttProtocol::StartMqttClient(bool report_error) {
                     }
                 });
             }
-        } else if (on_incoming_json_ != nullptr) {
-            on_incoming_json_(root);
+        } else {
+            const uint64_t source_epoch = ConnectionEpoch();
+            if (on_incoming_json_epoch_ != nullptr) {
+                on_incoming_json_epoch_(source_epoch, root);
+            } else if (on_incoming_json_ != nullptr) {
+                on_incoming_json_(root);
+            }
         }
         cJSON_Delete(root);
         last_incoming_time_ = std::chrono::steady_clock::now();
@@ -216,8 +222,7 @@ bool MqttProtocol::SendAudio(std::unique_ptr<AudioStreamPacket> packet) {
             return false;
         }
         if (aes_nonce_.size() != kAudioHeaderSize || packet->payload.size() > UINT16_MAX) {
-            ESP_LOGE(TAG, "Invalid AES nonce or audio payload length: %zu",
-                     packet->payload.size());
+            ESP_LOGE(TAG, "Invalid AES nonce or audio payload length: %zu", packet->payload.size());
             return false;
         }
         udp = udp_;
@@ -254,6 +259,7 @@ void MqttProtocol::CloseAudioChannel(bool send_goodbye) {
     }
     udp.reset();
 
+    const uint64_t epoch = connection_epoch();
     ESP_LOGI(TAG, "Closing audio channel, send_goodbye: %d", send_goodbye);
 
     // Only send goodbye when client initiates the close
@@ -266,17 +272,61 @@ void MqttProtocol::CloseAudioChannel(bool send_goodbye) {
         SendText(message);
     }
 
+    if (on_audio_channel_closed_epoch_ != nullptr) {
+        on_audio_channel_closed_epoch_(epoch);
+    }
     if (on_audio_channel_closed_ != nullptr) {
         on_audio_channel_closed_();
     }
 }
 
+void MqttProtocol::CancelOpenAudioChannel() {
+    BeginConnectionAttempt();
+    open_cancelled_.store(true, std::memory_order_release);
+    if (event_group_handle_ != nullptr) {
+        xEventGroupSetBits(event_group_handle_, MQTT_PROTOCOL_OPEN_CANCEL_EVENT);
+    }
+}
+
+void MqttProtocol::OnAudioChannelOpenReserved(uint64_t reservation_epoch) {
+    (void)reservation_epoch;
+    open_cancelled_.store(false, std::memory_order_release);
+    if (event_group_handle_ != nullptr) {
+        xEventGroupClearBits(event_group_handle_,
+                             MQTT_PROTOCOL_SERVER_HELLO_EVENT | MQTT_PROTOCOL_OPEN_CANCEL_EVENT);
+    }
+}
+
 bool MqttProtocol::OpenAudioChannel() {
+    return OpenAudioChannelForEpoch(ReserveAudioChannelOpen());
+}
+
+bool MqttProtocol::OpenAudioChannelForEpoch(uint64_t reservation_epoch) {
+    bool expected = false;
+    if (!open_in_progress_.compare_exchange_strong(expected, true, std::memory_order_acq_rel)) {
+        ESP_LOGW(TAG, "OpenAudioChannel already in progress");
+        return false;
+    }
+    struct OpenGuard {
+        std::atomic<bool>& in_progress;
+        ~OpenGuard() { in_progress.store(false, std::memory_order_release); }
+    } guard{open_in_progress_};
+
+    if (!IsAudioChannelOpenReservationValid(reservation_epoch) ||
+        open_cancelled_.load(std::memory_order_acquire)) {
+        return false;
+    }
+    const uint64_t epoch = reservation_epoch;
     if (mqtt_ == nullptr || !mqtt_->IsConnected()) {
         ESP_LOGI(TAG, "MQTT is not connected, try to connect now");
         if (!StartMqttClient(true)) {
             return false;
         }
+    }
+
+    if (open_cancelled_.load(std::memory_order_acquire) ||
+        !IsAudioChannelOpenReservationValid(epoch)) {
+        return false;
     }
 
     error_occurred_ = false;
@@ -288,10 +338,25 @@ bool MqttProtocol::OpenAudioChannel() {
         return false;
     }
 
-    // 等待服务器响应
-    EventBits_t bits = xEventGroupWaitBits(event_group_handle_, MQTT_PROTOCOL_SERVER_HELLO_EVENT,
-                                           pdTRUE, pdFALSE, pdMS_TO_TICKS(10000));
-    if (!(bits & MQTT_PROTOCOL_SERVER_HELLO_EVENT)) {
+    // Wait in bounded slices so a recovery cancellation never blocks the main
+    // or audio task for the full hello timeout.
+    EventBits_t bits = 0;
+    for (int i = 0; i < 100; ++i) {
+        bits = xEventGroupWaitBits(
+            event_group_handle_, MQTT_PROTOCOL_SERVER_HELLO_EVENT | MQTT_PROTOCOL_OPEN_CANCEL_EVENT,
+            pdTRUE, pdFALSE, pdMS_TO_TICKS(100));
+        if ((bits & MQTT_PROTOCOL_OPEN_CANCEL_EVENT) != 0 ||
+            open_cancelled_.load(std::memory_order_acquire) ||
+            !IsAudioChannelOpenReservationValid(epoch)) {
+            return false;
+        }
+        if ((bits & MQTT_PROTOCOL_SERVER_HELLO_EVENT) != 0) {
+            break;
+        }
+    }
+    if ((bits & MQTT_PROTOCOL_SERVER_HELLO_EVENT) == 0 ||
+        open_cancelled_.load(std::memory_order_acquire) ||
+        !IsAudioChannelOpenReservationValid(epoch)) {
         ESP_LOGE(TAG, "Failed to receive server hello");
         SetError(Lang::Strings::SERVER_TIMEOUT);
         return false;
@@ -299,7 +364,10 @@ bool MqttProtocol::OpenAudioChannel() {
 
     auto network = Board::GetInstance().GetNetwork();
     auto udp = network->CreateUdp(2);
-    udp->OnMessage([this](const std::string& data) {
+    udp->OnMessage([this, epoch](const std::string& data) {
+        if (epoch != ConnectionEpoch()) {
+            return;
+        }
         /*
          * UDP Encrypted OPUS Packet Format:
          * |type 1u|flags 1u|payload_len 2u|ssrc 4u|timestamp 4u|sequence 4u|
@@ -363,7 +431,9 @@ bool MqttProtocol::OpenAudioChannel() {
             remote_sequence_ = sequence;
         }
         last_incoming_time_ = std::chrono::steady_clock::now();
-        if (on_incoming_audio_ != nullptr) {
+        if (on_incoming_audio_epoch_ != nullptr) {
+            on_incoming_audio_epoch_(epoch, std::move(packet));
+        } else if (on_incoming_audio_ != nullptr) {
             on_incoming_audio_(std::move(packet));
         }
     });
@@ -373,13 +443,21 @@ bool MqttProtocol::OpenAudioChannel() {
                  connected.error().ToString().c_str());
         return false;
     }
+    if (open_cancelled_.load(std::memory_order_acquire) ||
+        !IsAudioChannelOpenReservationValid(epoch)) {
+        return false;
+    }
     {
         std::lock_guard<std::mutex> lock(channel_mutex_);
         udp_ = std::move(udp);
+        published_epoch_.store(epoch, std::memory_order_release);
     }
 
     if (on_audio_channel_opened_ != nullptr) {
         on_audio_channel_opened_();
+    }
+    if (on_audio_channel_opened_epoch_ != nullptr) {
+        on_audio_channel_opened_epoch_(epoch);
     }
     return true;
 }
@@ -565,5 +643,6 @@ bool MqttProtocol::DecodeHexString(const std::string& hex_string, std::string& d
 
 bool MqttProtocol::IsAudioChannelOpened() const {
     std::lock_guard<std::mutex> lock(channel_mutex_);
-    return udp_ != nullptr && !error_occurred_ && !IsTimeout();
+    return published_epoch_.load(std::memory_order_acquire) == ConnectionEpoch() &&
+           udp_ != nullptr && !error_occurred_ && !IsTimeout();
 }

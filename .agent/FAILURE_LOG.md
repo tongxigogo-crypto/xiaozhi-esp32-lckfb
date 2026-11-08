@@ -34,3 +34,33 @@ Decision Reference:
 Owner:
 Timestamp:
 ```
+
+
+## FAIL-NET-MAC-PUSH-20261108
+
+{
+  "Failure ID": "FAIL-NET-MAC-PUSH-20261108",
+  "Task ID": "NET-FIX-FW-20261108",
+  "Failed Approach": "GIT_TERMINAL_PROMPT=0 gitpush--dry-runfork HEAD:candidatebranch fromMac",
+  "Outcome": "exit128: couldnotreadUsername; no remote mutation",
+  "Root Cause": "Macnoninteractivepushcredentialunavailable",
+  "Prohibited Repeat Attempt": "no identicalMacpushretry withoutnewauthentication evidence; nocredentials copied",
+  "Decision Reference": "DEC-NET-BUILD-AUTH-20261108",
+  "Owner": "SOL",
+  "Timestamp": "2026-11-08T19:45:51+08:00"
+}
+
+
+## FAIL-NET-REMOTE-REF-20261108
+
+{
+  "Failure ID": "FAIL-NET-REMOTE-REF-20261108",
+  "Task ID": "NET-FIX-FW-20261108",
+  "Failed Approach": "Windowsbarefetch468971c fromfork",
+  "Outcome": "exit128 notourref; baretempcreatedbutnoremotechange",
+  "Root Cause": "468971c islocal-onlydocscommit notadvertisedforkobject",
+  "Prohibited Repeat Attempt": "no sameSHAfetchretry; useadvertisedref",
+  "Decision Reference": "DEC-NET-REMOTE-BASE-20261108",
+  "Owner": "SOL",
+  "Timestamp": "2026-11-08T19:46:37+08:00"
+}
