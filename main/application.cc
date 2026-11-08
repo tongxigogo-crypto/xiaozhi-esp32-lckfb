@@ -698,23 +698,33 @@ void Application::InitializeProtocol() {
         if (!owned)
             return;
         Schedule([this, display, source_protocol, callback_epoch, owned]() {
-            if (!IsCurrentProtocolSource(source_protocol, callback_epoch))
+            if (!IsCurrentControlSource(source_protocol, callback_epoch))
                 return;
             const cJSON* root = owned.get();
-            auto schedule_if_current = [this, source_protocol,
-                                        callback_epoch](std::function<void()>&& task) {
-                Schedule([this, source_protocol, callback_epoch, task = std::move(task)]() mutable {
-                    if (!IsCurrentProtocolSource(source_protocol, callback_epoch))
-                        return;
-                    task();
-                });
-            };
-            // Parse JSON data
             auto type = cJSON_GetObjectItem(root, "type");
             if (!cJSON_IsString(type)) {
                 ESP_LOGW(TAG, "Incoming JSON message has no type");
                 return;
             }
+            // MQTT controls remain valid without UDP; WS MCP can arrive before
+            // the opened event is consumed. Conversation frames still require
+            // the accepted audio session, both now and in deferred mutations.
+            const bool audio_session = strcmp(type->valuestring, "tts") == 0 ||
+                                       strcmp(type->valuestring, "stt") == 0 ||
+                                       strcmp(type->valuestring, "llm") == 0;
+            if (audio_session && !IsCurrentProtocolSource(source_protocol, callback_epoch))
+                return;
+            auto schedule_if_current = [this, source_protocol, callback_epoch,
+                                        audio_session](std::function<void()>&& task) {
+                Schedule([this, source_protocol, callback_epoch, audio_session,
+                          task = std::move(task)]() mutable {
+                    if (!IsCurrentControlSource(source_protocol, callback_epoch) ||
+                        (audio_session &&
+                         !IsCurrentProtocolSource(source_protocol, callback_epoch)))
+                        return;
+                    task();
+                });
+            };
             if (strcmp(type->valuestring, "notify") == 0) {
                 auto audio_url = cJSON_GetObjectItem(root, "audio_url");
                 if (!cJSON_IsString(audio_url) || audio_url->valuestring[0] == '\0') {
@@ -1173,6 +1183,15 @@ void Application::HandleAudioChannelClosed(uint64_t protocol_epoch) {
     }
 
     SetDeviceState(kDeviceStateIdle);
+}
+
+bool Application::IsCurrentControlSource(const std::weak_ptr<Protocol>& weak_source,
+                                         uint64_t epoch) const {
+    auto source = weak_source.lock();
+    // Epoch zero is a valid MQTT control connection before UDP is opened.
+    // Cancellation increments the source epoch; protocol replacement changes
+    // its identity, so neither can revive queued messages from an old source.
+    return source && source == protocol_ && source->ConnectionEpoch() == epoch;
 }
 
 bool Application::IsCurrentProtocolSource(const std::weak_ptr<Protocol>& weak_source,

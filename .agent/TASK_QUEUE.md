@@ -462,3 +462,36 @@ Timestamp:
   ],
   "Timestamp": "2026-11-09T01:31:33+08:00"
 }
+
+
+## NET-FIX-FW-20261108-R2-REVISION
+
+{
+  "Event ID": "NET-FIX-FW-20261108-R2-REVISION",
+  "Task ID": "NET-FIX-FW-20261108",
+  "From Status": "ready_for_review",
+  "To Status": "running",
+  "Actor": "SOL",
+  "Reason": "R1fourblockersclosed;R2MQTT/initialcontrolcompatibilityNEEDFIX",
+  "Evidence": [
+    "REVIEW-NET-FW-20261109-R2",
+    "DEC-NET-FW-R2-20261109"
+  ],
+  "Timestamp": "2026-11-09T01:34:34+08:00"
+}
+
+
+## NET-FIX-FW-20261108-R2-READY
+
+{
+  "Event ID": "NET-FIX-FW-20261108-R2-READY",
+  "Task ID": "NET-FIX-FW-20261108",
+  "From Status": "running",
+  "To Status": "ready_for_review",
+  "Actor": "SOL",
+  "Reason": "Author R2 source frozen; independent review and QA underway, no acceptance claim",
+  "Evidence": [
+    "HANDOFF-NET-FIX-FW-20261109-R2"
+  ],
+  "Timestamp": "2026-11-09T01:40:27.664737+08:00"
+}

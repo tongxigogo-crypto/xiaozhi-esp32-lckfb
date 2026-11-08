@@ -257,3 +257,41 @@ Timestamp:
   ],
   "Timestamp": "2026-11-09T01:31:33+08:00"
 }
+
+
+## HANDOFF-NET-FIX-FW-20261109-R2
+
+{
+  "Handoff ID": "HANDOFF-NET-FIX-FW-20261109-R2",
+  "Task ID": "NET-FIX-FW-20261108",
+  "Executing Agent": "ws_fw_finish (logical TERRA default runtime)",
+  "Completed Work": [
+    "separate transport-control freshness from accepted audio gate",
+    "revalidate original MQTT goodbye session and epoch at consumption"
+  ],
+  "Changed Files": [
+    "main/application.cc",
+    "main/application.h",
+    "main/protocols/mqtt_protocol.cc",
+    "scripts/tests/test_connection_recovery_dispatch.py"
+  ],
+  "Verification": {
+    "Command": "python3 -m unittest discover -s scripts/tests -p 'test_connection_recovery*.py' -v",
+    "Exit Status": 0,
+    "Relevant Counts": {
+      "passed": 20,
+      "skipped": 0
+    },
+    "Timestamp": "2026-11-09T01:37:50+08:00",
+    "Known Gaps": [
+      "independent review/QA ongoing",
+      "ESP-IDF build and physical verification pending"
+    ]
+  },
+  "Evidence": [
+    "/Users/tong/CodexWorkspace/AgentBackups/xiaofeiyu/20261108T193104+0800/ws-fw-r2-red.log",
+    "/Users/tong/CodexWorkspace/AgentBackups/xiaofeiyu/20261108T193104+0800/ws-fw-r2-green.log",
+    "/Users/tong/CodexWorkspace/AgentBackups/xiaofeiyu/20261108T193104+0800/ws-fw-r2-ui-touch.log"
+  ],
+  "Timestamp": "2026-11-09T01:40:27.664737+08:00"
+}

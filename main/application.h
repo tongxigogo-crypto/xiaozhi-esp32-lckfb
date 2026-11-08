@@ -197,6 +197,7 @@ private:
     void HandleRecoveryWorkerDone(uint64_t generation);
     void HandleAudioChannelClosed(uint64_t protocol_epoch);
     void CancelRecoveryIntent(bool preserve_channel = false);
+    bool IsCurrentControlSource(const std::weak_ptr<Protocol>& source, uint64_t epoch) const;
     bool IsCurrentProtocolSource(const std::weak_ptr<Protocol>& source, uint64_t epoch) const;
     void BeginWakeWordInvoke(const std::string& wake_word);
     void ContinueWakeWordInvoke(const std::string& wake_word);

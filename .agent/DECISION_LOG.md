@@ -246,3 +246,23 @@ Timestamp:
   "Owner": "SOL",
   "Timestamp": "2026-11-09T01:26:25+08:00"
 }
+
+
+## DEC-NET-FW-R2-20261109
+
+{
+  "Decision ID": "DEC-NET-FW-R2-20261109",
+  "Related Task IDs": [
+    "NET-FIX-FW-20261108"
+  ],
+  "Related Failure IDs": [],
+  "Decision": "Boundedtransport-controlcompatibilityrevision; do notrelaxaccepted-audiocancellationgate",
+  "Reason": "PersistentMQTTcontrolandinitialWSMCPareindependentofaudioacceptance; queuedgoodbyemustretainoriginidentity",
+  "Alternatives": [
+    "relaxallgates rejected",
+    "controlsourcefreshness separatefromaccepted-audio chosen"
+  ],
+  "Final Choice": "sameTERRAauthor2findingrevision+actualdispatch/goodbyetests; separateReview/QAthencompile",
+  "Owner": "SOL",
+  "Timestamp": "2026-11-09T01:34:34+08:00"
+}

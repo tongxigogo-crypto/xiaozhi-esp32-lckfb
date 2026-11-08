@@ -99,3 +99,25 @@ Timestamp:
   ],
   "Timestamp": "2026-11-09T01:23:49+08:00"
 }
+
+
+## REVIEW-NET-FW-20261109-R2
+
+{
+  "Review ID": "REVIEW-NET-FW-20261109-R2",
+  "Supersedes": "REVIEW-NET-FW-20261109-R1",
+  "Task ID": "NET-FIX-FW-20261108",
+  "Reviewer": "ws_fw_final_review",
+  "PASS": false,
+  "NEED FIX": true,
+  "Scope": "Fullfeature+R1branches+CI",
+  "Critical": [
+    "idleMQTTcontrolandinitialWSMCPdroppedbyacceptedaudiogate",
+    "queuedoldMQTTgoodbyecanshutdownsupersedingsession"
+  ],
+  "Evidence": [
+    "independentR1new15PASS;fullhost147PASS24baseline/envskip",
+    "actualInitializeProtocol/MQTTcallbacksourceinspection"
+  ],
+  "Timestamp": "2026-11-09T01:34:34+08:00"
+}

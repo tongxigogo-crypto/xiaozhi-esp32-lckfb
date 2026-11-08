@@ -135,8 +135,11 @@ bool MqttProtocol::StartMqttClient(bool report_error) {
                      cJSON_IsString(session_id) ? session_id->valuestring : "null");
             if (cJSON_IsString(session_id) && session_id_ == session_id->valuestring) {
                 auto alive = alive_;  // Capture alive flag
-                Application::GetInstance().Schedule([this, alive]() {
-                    if (*alive) {
+                const auto source_session = session_id_;
+                const auto source_epoch = ConnectionEpoch();
+                Application::GetInstance().Schedule([this, alive, source_session, source_epoch]() {
+                    if (*alive && ConnectionEpoch() == source_epoch &&
+                        session_id_ == source_session) {
                         // Server initiated goodbye, don't send goodbye back to avoid ping-pong
                         CloseAudioChannel(false);
                     }
