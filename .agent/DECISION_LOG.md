@@ -289,3 +289,21 @@ Timestamp:
   "Owner": "SOL",
   "Timestamp": "2026-11-09T01:42:04.746572+08:00"
 }
+
+
+## DEC-NET-LOCAL-DELIVERY-20261109
+
+{
+  "Decision ID": "DEC-NET-LOCAL-DELIVERY-20261109",
+  "Related Task IDs": [
+    "NET-FIX-FW-20261108"
+  ],
+  "Related Failure IDs": [
+    "FAIL-NET-AUDIT-REMOTE-20261109"
+  ],
+  "Decision": "Retain final audit locally and deliver report by read-only file export; do not retry rejected remote mutation",
+  "Reason": "Cloud artifact/source already reviewable; extra audit push is not needed to finish authorized repair",
+  "Final Choice": "Local Git commits plus local delivery report; original published candidate/build identity remains 986aabd; production gate unchanged",
+  "Owner": "SOL",
+  "Timestamp": "2026-11-09T01:57:39.106408+08:00"
+}

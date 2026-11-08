@@ -64,3 +64,21 @@ Timestamp:
   "Owner": "SOL",
   "Timestamp": "2026-11-08T19:46:37+08:00"
 }
+
+
+## FAIL-NET-AUDIT-REMOTE-20261109
+
+{
+  "Failure ID": "FAIL-NET-AUDIT-REMOTE-20261109",
+  "Task ID": "NET-FIX-FW-20261108",
+  "Actor": "SOL",
+  "Timestamp": "2026-11-09T01:57:39.106408+08:00",
+  "Action": "Optional final audit bundle relay/import/remote push command on Windows",
+  "Observed Result": "Execution tool auto-review rejected before command start: blocked by policy; no detailed reason returned",
+  "Impact": "Compiled candidate 986aabd and CI artifact unaffected; final audit commits retained locally only",
+  "Retry Status": "No retry of rejected action; use local report delivery",
+  "Evidence": [
+    "functions.exec rejection after successful Mac source-identity verification",
+    "DEC-NET-LOCAL-DELIVERY-20261109"
+  ]
+}

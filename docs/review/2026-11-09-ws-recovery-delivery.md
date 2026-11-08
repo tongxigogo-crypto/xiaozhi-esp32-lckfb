@@ -81,3 +81,7 @@ CXX=clang++ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s scripts/te
 - 用户批准后的本次设备升级应先核验现有板型/分区，再仅更新 app@0x20000；assets 与现役完全相同，可保留。不得擅自写 bootloader、分区表、OTA 数据或 NVS。
 - 如需冷刷或全盘恢复，必须另外准备、核验完整同版镜像；本文不宣称该能力已交付。
 - 原配套 317748c 应用/资源产物保留；服务端原 current 目标 server-39f36a4 保留。启用新版本仍需用户确认。
+
+## 审计记录保存
+
+最终审计记录已在本地 Git 提交。额外远端推送被执行工具自动审批以 blocked by policy 拒绝，未提供具体理由；未重试该动作。GitHub 上已构建代码候选仍为 986aabd，完整报告另行导出到本地交付。本项不改变编译产物或生产状态。
