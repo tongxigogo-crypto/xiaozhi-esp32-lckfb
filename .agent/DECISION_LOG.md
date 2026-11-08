@@ -266,3 +266,26 @@ Timestamp:
   "Owner": "SOL",
   "Timestamp": "2026-11-09T01:34:34+08:00"
 }
+
+
+## DEC-NET-CLOUD-BUILD-20261109
+
+{
+  "Decision ID": "DEC-NET-CLOUD-BUILD-20261109",
+  "Related Task IDs": [
+    "NET-FIX-FW-20261108"
+  ],
+  "Related Failure IDs": [
+    "FAIL-NET-MAC-PUSH-20261108"
+  ],
+  "Decision": "Use authenticated Windows git/gh bridge for artifact-only candidate build",
+  "Reason": "Mac lacks push credentials; verified bundle transfers candidate without copying credentials",
+  "Final Choice": "Push only codex/ws-recovery-20261108 at 986aabd4159a11d4d97ac7193467917d169355b3; dispatch existing build-lckfb.yml; no main merge, OTA, flash or deployment",
+  "Evidence": [
+    "git bundle verify exit0",
+    "candidate branch push exit0",
+    "https://github.com/tongxigogo-crypto/xiaozhi-esp32-lckfb/actions/runs/42506218869"
+  ],
+  "Owner": "SOL",
+  "Timestamp": "2026-11-09T01:42:04.746572+08:00"
+}

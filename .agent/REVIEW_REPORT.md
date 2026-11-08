@@ -121,3 +121,60 @@ Timestamp:
   ],
   "Timestamp": "2026-11-09T01:34:34+08:00"
 }
+
+
+## REVIEW-NET-FW-20261109-R3
+
+{
+  "Review ID": "REVIEW-NET-FW-20261109-R3",
+  "Supersedes": "REVIEW-NET-FW-20261109-R2",
+  "Task ID": "NET-FIX-FW-20261108",
+  "Reviewer": "ws_fw_final_review independent reviewer",
+  "Scope": "Full source/test/CI feature diff against ec5eeb5 plus frozen R2 delta",
+  "PASS": true,
+  "NEED FIX": false,
+  "Evidence": [
+    "Independent recovery20/20 exit0 2026-11-08T17:39:57Z",
+    "git diff --check exit0",
+    "actual full InitializeProtocol and MQTT OnMessage adapters inspected",
+    "/Users/tong/CodexWorkspace/AgentBackups/xiaofeiyu/20261108T193104+0800/fw-r2-qa-summary.json"
+  ],
+  "Known Gaps": [
+    "ESP-IDF build pending",
+    "physical acceptance pending"
+  ],
+  "Timestamp": "2026-11-09T01:42:04.746572+08:00"
+}
+
+
+## REVIEW-NET-INTEGRATION-20261109-R4
+
+{
+  "Review ID": "REVIEW-NET-INTEGRATION-20261109-R4",
+  "Task ID": "NET-FIX-FW-20261108",
+  "Related Task IDs": [
+    "NET-DIAG-FW-20261108",
+    "NET-EXPERT-FW-20261108",
+    "NET-DIAG-SV-20261108"
+  ],
+  "Reviewer": "ws_fw_final_review independent reviewer",
+  "Scope": "Final build/artifact/delivery integration; joint bounded diagnosis and expert-advice adoption; package scope clarification",
+  "PASS": true,
+  "NEED FIX": false,
+  "Evidence": [
+    "REVIEW-NET-FW-20261109-R3",
+    "https://github.com/tongxigogo-crypto/xiaozhi-esp32-lckfb/actions/runs/42506218869",
+    "/Users/tong/CodexWorkspace/AgentBackups/xiaofeiyu/20261108T193104+0800/artifact-qa-summary.json",
+    "/Users/tong/CodexWorkspace/AgentBackups/xiaofeiyu/20261108T193104+0800/fw-r2-qa-summary.json",
+    "/Users/tong/CodexWorkspace/AgentBackups/xiaofeiyu/20261108T193104+0800/qa-summary-sv-r1.json",
+    "/Users/tong/CodexWorkspace/AgentBackups/xiaofeiyu/20261108T193104+0800/diagnostic-evidence.json",
+    "independent reviewer final messages at 2026-11-08T17:52:14Z and package-clarification PASS"
+  ],
+  "Known Gaps": [
+    "physical recovery/audio/AEC/Wi-Fi/Pong not yet tested",
+    "original receive failure source/RST not proven",
+    "app/assets update bundle only; cold-flash images not included",
+    "deployment and flashing require explicit user approval"
+  ],
+  "Timestamp": "2026-11-09T01:55:25.498288+08:00"
+}

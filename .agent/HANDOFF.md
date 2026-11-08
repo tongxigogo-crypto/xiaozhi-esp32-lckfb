@@ -295,3 +295,73 @@ Timestamp:
   ],
   "Timestamp": "2026-11-09T01:40:27.664737+08:00"
 }
+
+
+## HANDOFF-NET-QA-FW-20261109-R2
+
+{
+  "Handoff ID": "HANDOFF-NET-QA-FW-20261109-R2",
+  "Task ID": "NET-QA-FW-20261108",
+  "Executing Agent": "ws_fw_final_qa independent QA",
+  "Completed Work": [
+    "stable source hash verification",
+    "isolated recovery and full host test execution"
+  ],
+  "Changed Files": [],
+  "Verification": {
+    "Command": [
+      "CXX=clang++ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s scripts/tests -p 'test_connection_recovery*.py' -v",
+      "CXX=clang++ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s scripts/tests -p 'test*.py' -v"
+    ],
+    "Exit Status": [
+      0,
+      0
+    ],
+    "Relevant Counts": {
+      "recovery_passed": 20,
+      "full_passed": 152,
+      "full_skipped": 24,
+      "full_failed": 0
+    },
+    "Timestamp": "2026-11-08T17:41:00.860796Z",
+    "Known Gaps": [
+      "24 baseline/environment skips: workflows5, CMake1, NVS8, PIL10",
+      "RTOS/hardware adapters; actual SDK and physical validation pending"
+    ]
+  },
+  "Evidence": [
+    "/Users/tong/CodexWorkspace/AgentBackups/xiaofeiyu/20261108T193104+0800/fw-r2-qa-summary.json"
+  ],
+  "Timestamp": "2026-11-09T01:42:04.746572+08:00"
+}
+
+
+## HANDOFF-NET-ARTIFACT-20261109
+
+{
+  "Handoff ID": "HANDOFF-NET-ARTIFACT-20261109",
+  "Task ID": "NET-QA-FW-20261108",
+  "Executing Agent": "ws_fw_final_qa independent QA",
+  "Completed Work": [
+    "independent built artifact identity, checksums, partition sizing, resolved dependency provenance and live pointer checks"
+  ],
+  "Changed Files": [],
+  "Verification": {
+    "Command": "python3 /var/folders/qg/h9vp1b414253fxn3qp3gxbh00000gn/T/xfy-artifact-qa-aj0n506c/artifact_qa.py",
+    "Exit Status": 0,
+    "Relevant Counts": {
+      "assertions_passed": 41,
+      "failed": 0
+    },
+    "Timestamp": "2026-11-08T17:52:57.359010Z",
+    "Known Gaps": [
+      "physical validation pending",
+      "not a complete cold-flash bundle"
+    ]
+  },
+  "Evidence": [
+    "/Users/tong/CodexWorkspace/AgentBackups/xiaofeiyu/20261108T193104+0800/artifact-qa-summary.json",
+    "/Users/tong/CodexWorkspace/AgentBackups/xiaofeiyu/20261108T193104+0800/artifact-qa-artifact_qa.py"
+  ],
+  "Timestamp": "2026-11-09T01:55:25.498288+08:00"
+}

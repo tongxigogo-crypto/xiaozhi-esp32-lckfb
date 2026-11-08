@@ -495,3 +495,129 @@ Timestamp:
   ],
   "Timestamp": "2026-11-09T01:40:27.664737+08:00"
 }
+
+
+## NET-QA-FW-20261108-FINAL-READY
+
+{
+  "Event ID": "NET-QA-FW-20261108-FINAL-READY",
+  "Task ID": "NET-QA-FW-20261108",
+  "From Status": "running",
+  "To Status": "ready_for_review",
+  "Actor": "SOL",
+  "Reason": "Independent evidence/report complete; submitted for SOL acceptance",
+  "Evidence": [
+    "REVIEW-NET-INTEGRATION-20261109-R4",
+    "HANDOFF-NET-QA-FW-20261109-R2",
+    "HANDOFF-NET-ARTIFACT-20261109"
+  ],
+  "Timestamp": "2026-11-09T01:55:25.498288+08:00"
+}
+
+
+## NET-REVIEW-FW-20261108-FINAL-READY
+
+{
+  "Event ID": "NET-REVIEW-FW-20261108-FINAL-READY",
+  "Task ID": "NET-REVIEW-FW-20261108",
+  "From Status": "running",
+  "To Status": "ready_for_review",
+  "Actor": "SOL",
+  "Reason": "Independent evidence/report complete; submitted for SOL acceptance",
+  "Evidence": [
+    "REVIEW-NET-INTEGRATION-20261109-R4",
+    "HANDOFF-NET-QA-FW-20261109-R2",
+    "HANDOFF-NET-ARTIFACT-20261109"
+  ],
+  "Timestamp": "2026-11-09T01:55:25.498288+08:00"
+}
+
+
+## NET-FIX-FW-20261108-FINAL-ACCEPT
+
+{
+  "Event ID": "NET-FIX-FW-20261108-FINAL-ACCEPT",
+  "Task ID": "NET-FIX-FW-20261108",
+  "From Status": "ready_for_review",
+  "To Status": "completed",
+  "Actor": "SOL",
+  "Reason": "SOL accepts bounded software/evidence scope after independent PASS + QA + actual cloud build; no production release or physical acceptance",
+  "Evidence": [
+    "REVIEW-NET-INTEGRATION-20261109-R4",
+    "/Users/tong/CodexWorkspace/AgentBackups/xiaofeiyu/20261108T193104+0800/fw-r2-qa-summary.json",
+    "/Users/tong/CodexWorkspace/AgentBackups/xiaofeiyu/20261108T193104+0800/artifact-qa-summary.json"
+  ],
+  "Timestamp": "2026-11-09T01:55:25.498288+08:00"
+}
+
+
+## NET-QA-FW-20261108-FINAL-ACCEPT
+
+{
+  "Event ID": "NET-QA-FW-20261108-FINAL-ACCEPT",
+  "Task ID": "NET-QA-FW-20261108",
+  "From Status": "ready_for_review",
+  "To Status": "completed",
+  "Actor": "SOL",
+  "Reason": "SOL accepts bounded software/evidence scope after independent PASS + QA + actual cloud build; no production release or physical acceptance",
+  "Evidence": [
+    "REVIEW-NET-INTEGRATION-20261109-R4",
+    "/Users/tong/CodexWorkspace/AgentBackups/xiaofeiyu/20261108T193104+0800/fw-r2-qa-summary.json",
+    "/Users/tong/CodexWorkspace/AgentBackups/xiaofeiyu/20261108T193104+0800/artifact-qa-summary.json"
+  ],
+  "Timestamp": "2026-11-09T01:55:25.498288+08:00"
+}
+
+
+## NET-REVIEW-FW-20261108-FINAL-ACCEPT
+
+{
+  "Event ID": "NET-REVIEW-FW-20261108-FINAL-ACCEPT",
+  "Task ID": "NET-REVIEW-FW-20261108",
+  "From Status": "ready_for_review",
+  "To Status": "completed",
+  "Actor": "SOL",
+  "Reason": "SOL accepts bounded software/evidence scope after independent PASS + QA + actual cloud build; no production release or physical acceptance",
+  "Evidence": [
+    "REVIEW-NET-INTEGRATION-20261109-R4",
+    "/Users/tong/CodexWorkspace/AgentBackups/xiaofeiyu/20261108T193104+0800/fw-r2-qa-summary.json",
+    "/Users/tong/CodexWorkspace/AgentBackups/xiaofeiyu/20261108T193104+0800/artifact-qa-summary.json"
+  ],
+  "Timestamp": "2026-11-09T01:55:25.498288+08:00"
+}
+
+
+## NET-EXPERT-FW-20261108-FINAL-ACCEPT
+
+{
+  "Event ID": "NET-EXPERT-FW-20261108-FINAL-ACCEPT",
+  "Task ID": "NET-EXPERT-FW-20261108",
+  "From Status": "ready_for_review",
+  "To Status": "completed",
+  "Actor": "SOL",
+  "Reason": "SOL accepts bounded software/evidence scope after independent PASS + QA + actual cloud build; no production release or physical acceptance",
+  "Evidence": [
+    "REVIEW-NET-INTEGRATION-20261109-R4",
+    "/Users/tong/CodexWorkspace/AgentBackups/xiaofeiyu/20261108T193104+0800/fw-r2-qa-summary.json",
+    "/Users/tong/CodexWorkspace/AgentBackups/xiaofeiyu/20261108T193104+0800/artifact-qa-summary.json"
+  ],
+  "Timestamp": "2026-11-09T01:55:25.498288+08:00"
+}
+
+
+## NET-DIAG-FW-20261108-FINAL-ACCEPT
+
+{
+  "Event ID": "NET-DIAG-FW-20261108-FINAL-ACCEPT",
+  "Task ID": "NET-DIAG-FW-20261108",
+  "From Status": "ready_for_review",
+  "To Status": "completed",
+  "Actor": "SOL",
+  "Reason": "SOL accepts bounded software/evidence scope after independent PASS + QA + actual cloud build; no production release or physical acceptance",
+  "Evidence": [
+    "REVIEW-NET-INTEGRATION-20261109-R4",
+    "/Users/tong/CodexWorkspace/AgentBackups/xiaofeiyu/20261108T193104+0800/fw-r2-qa-summary.json",
+    "/Users/tong/CodexWorkspace/AgentBackups/xiaofeiyu/20261108T193104+0800/artifact-qa-summary.json"
+  ],
+  "Timestamp": "2026-11-09T01:55:25.498288+08:00"
+}
