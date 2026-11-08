@@ -1,6 +1,6 @@
 # 项目状态（唯一事实源）
 
-## 最新生效状态（2026-11-07 01:22，小马按 git / Actions / 串口日志 / 服务进程核实）
+## 最新生效状态（2026-11-08 18:58，Gemini 按 git / Actions / 串口日志 / 服务进程核实）
 
 > 本节优先于本文件下方所有内容，也优先于其他状态页。下方旧内容只作历史，冲突时以本节为准。
 > 其他状态页（`SYNC.md`、`STATUS.md`、Obsidian `50-小肥鱼/01-项目进度.md`、`00-目录清单.md`）只放指针，不另写一份。
@@ -8,19 +8,17 @@
 
 | 项 | 当前值 | 依据 |
 | :--- | :--- | :--- |
-| 板上固件 | **2.5.8**，构建提交 `afeb379`（Actions `42381190522`）；2026-11-07 22:40 小马烧录，冷启动读回 `App version: 2.5.8` 并进入 `listening`，含 `self.set/get_voice_profile` 工具 | `outputs/2.5.8-touch-wo2/boot-log-2.5.8.log` |
-| 固件现役分支 | `codex/2.5.7-https` = `9c2c99d`，本地与 fork 一致 | `git rev-parse`、`git push` |
-| 上一版（回滚用） | 2.5.6 `c46a91d`（Actions `42139132026`），产物在 `outputs/2.5.6-completion/artifact-c46a91d`；档案 Obsidian `50-小肥鱼/03-2.5.6-交付档案.md` | `latest-release.json` |
-| 产物 | 2.5.7 用 `outputs/2.5.7-https/artifact-9c2c99d/xiaozhi-lckfb-lichuang-dev/`：app `815be949…`、assets `fd7a3d38…`（与 2.5.6 同一份）。旧混版产物仍在 `.archive-20261106/`，**勿用** | `sha256sums.txt` |
-| 工单2（已烧，待实机验收） | `feat/2.5.8-touch-wo2` @ `afeb379`，2026-11-07 22:40 烧录；app 2,701,328 B `42ed19d1…`，assets 与 2.5.7 相同。交付说明 `10-交付与验收/工单2-触摸反馈交付-v1.4-2026-11-07.md`。**实机手势/双音色/仲裁/P95 待验收** | `flash-args.txt`、boot-log |
-| 回滚 | 2.5.6 `c46a91d` 成套 app + assets（`outputs/2.5.6-completion/artifact-c46a91d`）；2.5.5 / `96fada8` 的 16MiB 整片私密备份只作应急 | 2.5.6 验收报告 |
-| 服务端运行 | `~/Services/xiaofeiyu/current` → `releases/server-b6a3547`（11-07 23:12 起，基于生产基线 `8ce6677` + `recall_recent` 只读召回；**不含工单1**），LaunchAgent `com.xiaofeiyu.server`；frpc 常驻（`com.xiaofeiyu.frpc`）。回滚：`current` 指回 `releases/server-d9105f3`（记忆仍读新目录前需先设 `XFY_MEMORY_DIR`，否则旧版会写回知识库）后 `launchctl kickstart -k gui/$(id -u)/com.xiaofeiyu.server`。**注意**：各版本共用的 `.venv` 实体在 `releases/server-fbf654b/` 里，该目录不能删 | `readlink`、`launchctl list` |
-| 服务端源码 | `runtime/xiaozhi-esp32-server`，分支 `codex/2.5.6-emotion`（工单1 冻结 `d423226`，**未部署**）；部署分支 `feat/recall-recent-8ce` @ `b6a3547`。`origin` 是官方上游，推送地址已设为 `DISABLED`（只拉不推） | `git log` |
+| 板上固件 | **2.5.8**，构建提交 `317748c`（Actions `42382869217`）；已烧录，冷启动读回 `App version: 2.5.8` 并进入 `listening`，含双音色短气声与 `self.set/get_voice_profile` 工具 | `outputs/2.5.8-touch-wo2/boot-log-2.5.8-317748c.log` |
+| 固件现役分支 | `feat/2.5.8-touch-wo2` @ `317748c`，本地与 fork 一致；基线分支 `codex/2.5.7-https` = `9c2c99d` | `git rev-parse`、`git log` |
+| 上一版（回滚用） | 固件：2.5.7 `9c2c99d`；服务端：`releases/server-b6a3547` | `latest-release.json`、`releases/` |
+| 产物 | 固件 2.5.8 用 `outputs/2.5.8-touch-wo2/artifact-317748c/xiaozhi-lckfb-lichuang-dev/`：app `84382372…`、assets `fd7a3d38…`（与 2.5.7 相同） | `flash-args.txt`、`sha256sums.txt` |
+| 服务端运行 | `~/Services/xiaofeiyu/current` → `releases/server-39f36a4`（2026-11-08 18:56 起，基于单版工单1~5全量候选 `39f36a4`），LaunchAgent `com.xiaofeiyu.server`（PID 26824，退出码 0，正常监听 127.0.0.1:8000）；frpc 常驻（`com.xiaofeiyu.frpc`）。回滚：`current` 指回 `releases/server-b6a3547` 后 `launchctl kickstart -k gui/$(id -u)/com.xiaofeiyu.server` | `readlink`、`launchctl list`、`stderr.log` |
+| 服务端源码 | `runtime/xiaozhi-esp32-server`，分支 `codex/2.5.6-emotion` @ `39f36a4`（工单1~5全量收敛，含107项unittest+22项脚本检查全部PASS）。`origin` 是官方上游，推送地址已设为 `DISABLED`（只拉不推） | `git log`、`git status` |
 | 运行时记忆 | 独立 Obsidian 仓库 `~/CodexWorkspace/ObsidianVaults/小肥鱼记忆库`（`~/Services/xiaofeiyu/state/memory` 是指向它的链接）（记忆卡、`02-事件/`、`99-归档/`、提炼状态），11-06 从知识库 `50-小肥鱼/` 迁出；`XFY_MEMORY_DIR` 可覆盖；事件流留 3 个月明文，更早压缩到 `99-归档/事件/`。知识库 `50-小肥鱼/` 只放项目文档 | `memory_obsidian.py` |
-| 发布构建 | 一律用 `~/Services/xiaofeiyu/tools/build_release.sh <提交>`（自带自检）。11-06 23:33 手工构建把 `models` 链成了 `models/models`，声纹和 ASR 模型找不到，板子只显示聆听不答复，23:37 已修 | — |
+| 发布构建 | 一律用 `~/Services/xiaofeiyu/tools/build_release.sh <提交>`（自带自检）。本次发布包 `releases/server-39f36a4` 严格由该脚本自动化生成 | `build_release.sh` |
 | OTA 地址 | 固件默认 `https://47.117.142.184/xiaozhi/ota/`（2.5.5 起就是 https） | `main/Kconfig.projbuild` |
-| 待实施 | `.agent/SPEC-pending-changes.md`：S1–S3 已实施并部署（`1214895`/`34f8f97`）；F1–F3 审核结论为现阶段不需要（见该文件第五部分） | — |
-| 已知问题 | 11-06 日志里的三项已修并部署：记忆卡裁剪丢数据（S1–S3）、豆包 TTS 打断后 `StartSession failed`（`1ae1dcc`）、联网搜索 401 占位 Key（`658c737`）——**待真机对话复核**。仍待：人设废话多（待给标准）；2.5.6 的 9 项真机验收清单见交付档案第七节（2.5.7 已烧，验收对象改为 2.5.7）；服务端一次性告警 `Server sample rate 16000 does not match device output 24000`（重采样，非本版引入） | 服务端日志 11-06 / 11-07 冷启动 |
+| 活人感升级工单进度 | **工单1 PASS (`d423226`)**、**工单2 软件PASS/实机烧录 (`317748c`)**、**工单3 PASS (`314821a`)**、**工单4 PASS (`0804696`)**、**工单5 PASS (`39f36a4`)**：全量129项测试全部通过，发布包已部署就绪，等待最终整机体验验收 | `10-交付与验收/` |
+| 已知问题 | 2.5.6 的真机验收项中公网 OTA 串口已确认；服务端一次性告警 `Server sample rate 16000 does not match device output 24000`（重采样，非本版引入） | 服务端日志 |
 | 检索/提示词修复 | 11-07 01:20 部署（`8fd5ab7` + `8ce6677`）：① `search_notes` 把 `PROJECT_STATE.md` 列入语料并给 6 倍权重、片段固定取首节，历史日志不再盖过当前状态；② OTA 上报的固件版本落在 `state/data/device_versions.json`，注入提示词为「【设备自报固件版本】」，问版本时以此为准。成因：小肥鱼把版本答成 2.5.6，因为它只查知识库（`50-小肥鱼/` 被排除、`runtime/` 不在语料），命中了 11-06 的旧交接文档 | 服务端日志 01:00:26、01:20:49（提示词 8109 字） |
 | 证书到期 | VPS 443 = Let's Encrypt IP 短期证书（`preferred_profile=shortlived`，7 天），本次 `notAfter 2026-11-12 04:09 UTC`。**自动续期已核实可用**（11-07 00:45 小马，SSH 查 VPS）：systemd `xiaofeiyu-cert-renew.timer` active+enabled，每 6 小时一次，最近 5 次（11-06 00:01/06:25/12:25/18:04、11-07 00:11）均 Finished；`certbot renew --dry-run` **全部成功**；webroot `/var/lib/xiaofeiyu/acme`，nginx 80 在听。certbot 5.9.0 装在 `/opt/xiaofeiyu/certbot-venv/bin/`，**不在 PATH**（`which certbot` 查不到，容易误判为"没装"）。ARI 下次检查 11-07 05:07 UTC。**唯一残留确认**：11-10 起看一眼 `notBefore` 是否已更新 | `systemctl list-timers`、`certbot certificates`、`renew --dry-run` 11-07 00:45 |
 
